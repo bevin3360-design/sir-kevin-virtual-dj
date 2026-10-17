@@ -1,0 +1,1968 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080c14">
+  <title>SIR. KEVIN VIRTUAL DJ — Pro DJ Console</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080c14;
+      --panel: #101722;
+      --panel-raised: #151e2b;
+      --line: #263244;
+      --muted: #8290a4;
+      --text: #edf4ff;
+      --cyan: #41d9e8;
+      --purple: #9f7cff;
+      --gold: #ffc66d;
+      --green: #78e2ad;
+    }
+    :root[data-skin="violet"] { --cyan: #c17bff; --purple: #ff6fcf; --gold: #7be0ff; --green: #86f2c5; --bg: #0d0716; --panel: #171021; }
+    :root[data-skin="sunset"] { --cyan: #ff9b55; --purple: #ff5e79; --gold: #ffe082; --green: #a6ef8d; --bg: #13090c; --panel: #211217; }
+    :root[data-skin="ocean"] { --cyan: #45d7ff; --purple: #5687ff; --gold: #55f2c0; --green: #9ef5d0; --bg: #04111b; --panel: #0d1e2b; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(ellipse at 50% -20%, #17243a 0, transparent 44%),
+        var(--bg);
+      color: var(--text);
+      font: 13px/1.4 "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .app { max-width: 1600px; margin: auto; padding: 15px 18px 24px; }
+    header {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      min-height: 58px; border-bottom: 1px solid var(--line); padding-bottom: 13px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 50px; height: 50px; display: block; flex: 0 0 auto;
+      border: 1px solid #263244; border-radius: 9px; object-fit: cover;
+      background: #fff;
+    }
+    .brand-name { font-size: 14px; font-weight: 850; letter-spacing: .12em; white-space: nowrap; }
+    .brand-sub { color: var(--muted); font-size: 10px; letter-spacing: .15em; margin-top: 2px; }
+    nav { display: flex; gap: 5px; margin-left: auto; }
+    nav button {
+      background: transparent; border: 0; color: #9ba8bb; padding: 8px 10px; cursor: pointer;
+      border-radius: 7px;
+    }
+    nav button:hover, nav button.active { color: var(--text); background: #1a2534; }
+    .status { display: flex; align-items: center; gap: 12px; color: #bac5d4; font-size: 10px; letter-spacing: .12em; }
+    .live-dot { color: var(--green); }
+    .live-dot::before { content: ""; display: inline-block; width: 7px; height: 7px; background: var(--green); border-radius: 50%; margin-right: 6px; box-shadow: 0 0 9px var(--green); }
+    .rec { border: 1px solid #5d3341; color: #f58b9c; background: #301a25; border-radius: 5px; padding: 4px 7px; font-weight: 800; }
+    .rec.recording { color: white; background: #bb3850; animation: pulse 1s infinite; }
+    @keyframes pulse { 50% { opacity: .55; } }
+    .wave-strip {
+      height: 82px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+      gap: 15px; padding: 12px 16px; margin: 13px 0; border: 1px solid var(--line);
+      border-radius: 10px; background: linear-gradient(90deg, #10252b, #111a28 50%, #211a31);
+      overflow: hidden;
+    }
+    .wave-label { color: var(--muted); font-size: 9px; letter-spacing: .16em; }
+    .wave-label b { color: var(--text); display: block; font-size: 12px; margin-bottom: 3px; letter-spacing: .08em; }
+    .wave-label.right { text-align: right; }
+    #overview { display: block; width: 100%; height: 54px; }
+    .wave-center { min-width: 0; position: relative; }
+    .decks {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-areas: "deck-a deck-b deck-c deck-d" "mixer mixer mixer mixer";
+      gap: 12px; align-items: stretch;
+    }
+    .deck, .mixer, .library { border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(145deg, #121a26, #0f151f); }
+    .deck { padding: 14px; min-width: 0; }
+    .deck-a { grid-area: deck-a; }
+    .deck-b { grid-area: deck-b; }
+    .deck-c { grid-area: deck-c; }
+    .deck-d { grid-area: deck-d; }
+    .deck-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .deck-id { font-weight: 850; font-size: 12px; letter-spacing: .17em; }
+    .deck-id.a { color: var(--cyan); } .deck-id.b { color: var(--purple); }
+    .loaded { color: var(--muted); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; }
+    .track-info { display: grid; grid-template-columns: 78px minmax(0, 1fr); gap: 12px; align-items: center; min-height: 79px; }
+    .art {
+      width: 78px; height: 78px; border-radius: 8px; display: grid; place-items: center;
+      color: #e5fbff; font-size: 25px; font-weight: 900;
+      background: radial-gradient(circle at 65% 35%, #3d8494, transparent 31%), linear-gradient(145deg, #213d50, #121a2c 70%);
+      border: 1px solid #ffffff14; text-shadow: 0 2px 10px #000;
+    }
+    .deck-b .art { background: radial-gradient(circle at 65% 35%, #8c64be, transparent 31%), linear-gradient(145deg, #49375f, #17162c 70%); }
+    .deck-c .art { background: radial-gradient(circle at 65% 35%, #b98943, transparent 31%), linear-gradient(145deg, #57452d, #201a17 70%); }
+    .deck-d .art { background: radial-gradient(circle at 65% 35%, #e87882, transparent 31%), linear-gradient(145deg, #57323f, #21141e 70%); }
+    .track-title { font-size: 15px; font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .track-artist { color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .track-meta { display: flex; gap: 11px; color: #a8b5c6; font-size: 10px; margin-top: 9px; }
+    .track-meta strong { color: var(--gold); font-variant-numeric: tabular-nums; }
+    .deck-wave {
+      width: 100%; height: 78px; display: block; margin: 13px 0 9px; border-radius: 6px;
+      background: #09111a; border: 1px solid #202d3d; cursor: crosshair;
+    }
+    .wave-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-height: 22px; margin: -5px 2px 7px; }
+    .wave-status { min-width: 0; color: var(--muted); font-size: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wave-loop { border: 1px solid #344157; border-radius: 4px; background: #172231; color: var(--muted); padding: 3px 6px; font-size: 8px; font-weight: 800; cursor: pointer; }
+    .wave-loop.active { color: var(--gold); border-color: var(--gold); background: #33291b; }
+    .seek-control { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: center; margin: -4px 2px 10px; }
+    .seek-control label { color: var(--muted); font-size: 8px; font-weight: 800; letter-spacing: .1em; }
+    .seek-control input { margin: 0; }
+    .seek-control input:disabled, .deck-wave[aria-disabled="true"] { cursor: not-allowed; opacity: .45; }
+    .deck-a .seek-control input { accent-color: var(--cyan); }
+    .deck-b .seek-control input { accent-color: var(--purple); }
+    .deck-c .seek-control input { accent-color: var(--gold); }
+    .deck-d .seek-control input { accent-color: #f27e9d; }
+    .jog-row { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 3px 0 10px; }
+    .jog-wheel {
+      width: clamp(96px, 9vw, 126px); aspect-ratio: 1; flex: 0 0 auto; padding: 7px;
+      border-radius: 50%; border: 2px solid var(--cyan); cursor: grab; touch-action: none;
+      background: repeating-radial-gradient(circle, #101824 0 2px, #172130 3px 5px, #0a1019 6px 8px);
+      box-shadow: 0 0 0 4px #41d9e818, inset 0 0 20px #000b, 0 0 18px #41d9e81a;
+      display: grid; place-items: center; user-select: none;
+    }
+    .jog-wheel:active { cursor: grabbing; }
+    .deck-b .jog-wheel { border-color: var(--purple); box-shadow: 0 0 0 4px #9f7cff18, inset 0 0 20px #000b, 0 0 18px #9f7cff1a; }
+    .deck-c .jog-wheel { border-color: var(--gold); box-shadow: 0 0 0 4px #ffc66d18, inset 0 0 20px #000b, 0 0 18px #ffc66d1a; }
+    .deck-d .jog-wheel { border-color: #f27e9d; box-shadow: 0 0 0 4px #f27e9d18, inset 0 0 20px #000b, 0 0 18px #f27e9d1a; }
+    .stem-pads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .stem-pads .pad { font-size: 8px; }
+    .pad.muted { opacity: .45; text-decoration: line-through; }
+    .mode-row, .loop-markers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
+    .mode-button.active { color: #111; background: var(--gold); border-color: var(--gold); }
+    .deck-a .mode-button.active { background: var(--cyan); border-color: var(--cyan); }
+    .deck-b .mode-button.active { background: var(--purple); border-color: var(--purple); }
+    .loop-status, .tool-status { color: var(--muted); font-size: 9px; min-height: 13px; margin-top: 5px; }
+    .horizontal-pitch { margin-top: 10px; }
+    .tool-link { color: var(--cyan); text-decoration: none; }
+    .tool-link:hover { text-decoration: underline; }
+    .shortcut-list { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; color: var(--muted); font-size: 10px; }
+    .shortcut-list kbd { color: var(--text); background: #182333; border: 1px solid #344157; border-radius: 4px; padding: 2px 5px; }
+    .decks.layout-stacked { grid-template-columns: minmax(0, 1fr); grid-template-areas: "deck-a" "deck-b" "deck-c" "deck-d" "mixer"; }
+    .decks.layout-duo { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "deck-a deck-b" "deck-c deck-d" "mixer mixer"; }
+    .decks.layout-focus .deck:not(.focused) { display: none; }
+    .decks.layout-focus { grid-template-columns: minmax(0, 1fr); grid-template-areas: "deck-a" "deck-b" "deck-c" "deck-d" "mixer"; }
+    .decks.layout-focus .deck.focused .jog-wheel { width: clamp(130px, 15vw, 190px); }
+    .theme-row { display: flex; gap: 7px; flex-wrap: wrap; }
+    .provider-links { display: flex; flex-wrap: wrap; gap: 8px; }
+    .provider-links a, .link-button { padding: 7px 9px; border: 1px solid #344157; border-radius: 6px; background: #172231; color: var(--cyan); text-decoration: none; font-size: 10px; cursor: pointer; }
+    .provider-links a:hover, .link-button:hover { border-color: var(--cyan); color: white; }
+    .tutorial-dialog { width: min(560px, calc(100vw - 28px)); color: var(--text); background: #101722; border: 1px solid #3a5068; border-radius: 12px; padding: 20px; }
+    .tutorial-dialog::backdrop { background: #02060bd9; }
+    .tool-description { color: var(--muted); font-size: 10px; margin: 5px 0 9px; line-height: 1.5; }
+    .stem-pad-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    @media (max-width: 1200px) {
+      .decks { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "deck-a deck-b" "deck-c deck-d" "mixer mixer"; }
+      .decks.layout-stacked, .decks.layout-focus { grid-template-areas: "deck-a deck-a" "deck-b deck-b" "deck-c deck-c" "deck-d deck-d" "mixer mixer"; }
+    }
+    @media (max-width: 900px) {
+      .decks.layout-duo { grid-template-areas: "deck-a deck-b" "deck-c deck-d" "mixer mixer"; }
+    }
+    .jog-wheel.spinning .jog-center { animation: jog-spin 2.4s linear infinite; }
+    @keyframes jog-spin { to { transform: rotate(360deg); } }
+    .jog-center {
+      width: 46%; aspect-ratio: 1; border-radius: 50%; overflow: hidden;
+      border: 3px solid #111927; background: #fff; box-shadow: 0 0 0 2px #a9bdcf77;
+    }
+    .jog-center img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .jog-note { color: var(--muted); font-size: 8px; line-height: 1.6; letter-spacing: .09em; text-align: center; }
+    .time-row { display: flex; justify-content: space-between; color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; margin: -4px 2px 9px; }
+    .transport { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 7px; }
+    .transport-options { margin-top: 6px; }
+    .transport-options .control { width: 100%; }
+    .transport-options .control.active { color: #071318; background: var(--green); border-color: var(--green); }
+    .control {
+      border: 1px solid #354258; background: #1b2635; border-radius: 7px; padding: 9px 7px;
+      font-size: 10px; font-weight: 800; letter-spacing: .08em; cursor: pointer; transition: .15s;
+    }
+    .control:hover { filter: brightness(1.22); transform: translateY(-1px); }
+    .control.cue { color: var(--gold); }
+    .control.play { color: #071318; background: var(--cyan); border-color: var(--cyan); }
+    .deck-b .control.play { background: var(--purple); border-color: var(--purple); color: #130c20; }
+    .deck-c .deck-id { color: var(--gold); }
+    .deck-c .control.play { background: var(--gold); border-color: var(--gold); color: #211605; }
+    .control.play.playing { background: #ff7b8c; border-color: #ff7b8c; }
+    .performance, .deck-advanced { margin-top: 10px; border: 1px solid #273449; border-radius: 7px; background: #0d141e; }
+    .performance summary, .deck-advanced summary { padding: 7px 9px; color: #a9b8cc; font-size: 9px; font-weight: 800; letter-spacing: .1em; cursor: pointer; }
+    .performance[open], .deck-advanced[open] { padding-bottom: 9px; }
+    .performance[open] > :not(summary), .deck-advanced[open] > :not(summary) { margin-left: 9px; margin-right: 9px; }
+    .performance[open] > :not(summary) { margin-top: 8px; }
+    .hotcues, .loop-pads { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
+    .performance-label { color: var(--muted); font-size: 8px; letter-spacing: .11em; margin-bottom: 4px; }
+    .pad {
+      border: 1px solid #334158; border-radius: 5px; background: #172231;
+      color: #bdcadb; padding: 6px 3px; font-size: 9px; font-weight: 750; cursor: pointer;
+    }
+    .pad:hover { border-color: var(--cyan); color: white; }
+    .pad.active { background: #17434a; color: #67e6ef; border-color: var(--cyan); }
+    .deck-b .pad.active { background: #32264e; color: #c5adff; border-color: var(--purple); }
+    .deck-c .pad.active { background: #4a3922; color: #ffdf9d; border-color: var(--gold); }
+    .lower-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 13px; }
+    .range-control label { display: flex; justify-content: space-between; color: var(--muted); font-size: 9px; letter-spacing: .1em; margin-bottom: 4px; }
+    .range-control output { color: var(--text); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+    .deck-b input[type="range"] { accent-color: var(--purple); }
+    .deck-c input[type="range"] { accent-color: var(--gold); }
+    .pitch-control { margin-top: 12px; }
+    .mixer { grid-area: mixer; padding: 13px 12px; display: flex; flex-direction: column; }
+    .mixer-title { text-align: center; color: #bdc9d8; font-size: 10px; letter-spacing: .18em; font-weight: 800; margin-bottom: 12px; }
+    .mixer-channels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; flex: 1; }
+    .channel { display: flex; flex-direction: column; min-width: 0; }
+    .channel-name { color: var(--muted); font-size: 9px; text-align: center; letter-spacing: .12em; margin-bottom: 7px; }
+    .gain { margin-bottom: 8px; }
+    .eq { display: grid; gap: 5px; }
+    .eq .range-control label { font-size: 8px; }
+    .eq input { height: 14px; }
+    .fader-wrap { flex: 1; display: flex; flex-direction: column; margin: 8px 0; }
+    .fader-wrap label { color: var(--muted); text-align: center; font-size: 8px; letter-spacing: .1em; }
+    .fader {
+      writing-mode: vertical-lr; direction: rtl; width: 100%; flex: 1;
+      min-height: 70px; accent-color: #d7e0ec; margin: 6px 0;
+    }
+    .cue-monitor { display: flex; justify-content: center; gap: 12px; margin: 3px 0 9px; }
+    .cue-monitor label { color: var(--muted); font-size: 9px; }
+    .cross-row { margin-top: 8px; }
+    .cross-row label { display: flex; justify-content: space-between; color: var(--muted); font-size: 8px; letter-spacing: .1em; }
+    .vu-meter { height: 7px; margin: 5px 0 7px; overflow: hidden; border-radius: 5px; background: #080c14; border: 1px solid #29374a; }
+    .vu-meter-fill { width: 100%; height: 100%; background: linear-gradient(90deg, var(--green) 0 68%, var(--gold) 82%, #ff6578 100%); transform: scaleX(0); transform-origin: left; transition: transform 70ms linear; }
+    .master-meter { display: grid; grid-template-columns: auto minmax(80px, 1fr); gap: 8px; align-items: center; margin: 8px 0 2px; color: var(--muted); font-size: 8px; letter-spacing: .1em; }
+    .headphone-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    #crossfader { accent-color: var(--gold); }
+    .library { margin-top: 13px; overflow: hidden; }
+    .studio-tools { margin-top: 13px; border: 1px solid var(--line); border-radius: 9px; background: #0c121b; overflow: hidden; }
+    .studio-tools > summary { padding: 11px 14px; color: #b8c6d8; font-size: 10px; font-weight: 850; letter-spacing: .14em; cursor: pointer; }
+    .tool-panels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding: 0 12px 12px; }
+    .tool-card { border: 1px solid var(--line); border-radius: 9px; padding: 12px; background: #101722; min-width: 0; }
+    .tool-title { color: var(--cyan); font-size: 10px; font-weight: 850; letter-spacing: .14em; margin-bottom: 9px; }
+    .tool-row { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+    .tool-row + .tool-row { margin-top: 8px; }
+    .tool-select, .tool-input {
+      min-width: 0; color: var(--text); background: #0b111a; border: 1px solid #344157;
+      border-radius: 5px; padding: 7px 8px;
+    }
+    .tool-select { flex: 1; }
+    .tool-input { flex: 1; }
+    .voice-text { width: 100%; min-height: 54px; resize: vertical; color: var(--text); background: #0b111a; border: 1px solid #344157; border-radius: 5px; padding: 8px; }
+    .voice-status { color: var(--muted); font-size: 10px; min-height: 14px; }
+    .sampler-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .sampler-pad-card { min-width: 0; padding: 8px; border: 1px solid var(--line); border-radius: 7px; background: #0b111a; }
+    .sampler-pad-title { overflow: hidden; color: var(--gold); font-size: 9px; font-weight: 800; letter-spacing: .1em; text-overflow: ellipsis; white-space: nowrap; }
+    .sampler-pad-file { overflow: hidden; min-height: 14px; margin: 3px 0 6px; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .sampler-pad-actions { display: flex; gap: 4px; }
+    .sampler-pad-actions .small-button { flex: 1; min-width: 0; padding: 5px 4px; font-size: 9px; }
+    .sampler-pad-card .sampler-trigger { width: 100%; margin-bottom: 5px; }
+    .sampler-pad-card .sampler-trigger.active { color: #10151e; background: var(--gold); border-color: var(--gold); }
+    .sampler-pad-options { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 7px; color: var(--muted); font-size: 9px; }
+    .sampler-pad-options label { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .sampler-pad-volume { min-width: 0; width: 56%; }
+    .sampler-pad-options output { color: var(--text); min-width: 27px; text-align: right; }
+    .library-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+    .library-title { font-size: 11px; font-weight: 850; letter-spacing: .14em; }
+    .library-tools { display: flex; gap: 8px; align-items: center; }
+    .search { width: min(300px, 42vw); color: var(--text); border: 1px solid #344157; background: #0b111a; border-radius: 6px; padding: 7px 9px; outline: none; }
+    .search:focus { border-color: var(--cyan); }
+    .small-button { border: 1px solid #344157; background: #192434; padding: 7px 10px; border-radius: 6px; color: #cbd6e4; cursor: pointer; white-space: nowrap; }
+    .small-button:hover { border-color: var(--cyan); color: white; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 570px; text-align: left; }
+    th { color: #78869b; font-weight: 650; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 9px 14px; }
+    td { padding: 9px 14px; border-top: 1px solid #1e2938; color: #b8c4d3; font-size: 11px; }
+    tbody tr { cursor: pointer; transition: background .12s; }
+    tbody tr:hover { background: #192536; }
+    tbody tr.selected { background: #142b35; }
+    td:first-child { color: var(--text); font-weight: 650; }
+    .row-load { color: var(--cyan); font-size: 9px; letter-spacing: .08em; }
+    .empty { color: var(--muted); text-align: center; padding: 24px; }
+    .footer { display: flex; justify-content: space-between; color: #67768b; font-size: 9px; padding: 12px 2px 0; letter-spacing: .07em; }
+    .hidden { display: none; }
+    @media (max-width: 900px) {
+      .decks { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "deck-a deck-b" "deck-c deck-c" "mixer mixer"; }
+      .mixer { display: flex; }
+      .mixer-title { grid-column: 1 / -1; }
+      .mixer-channels { min-height: 175px; }
+      .cross-row { align-self: end; }
+      nav { display: none; }
+    }
+    @media (max-width: 590px) {
+      .app { padding: 10px; }
+      .brand-name { font-size: 11px; letter-spacing: .07em; }
+      .brand-sub { font-size: 8px; }
+      .status { gap: 7px; font-size: 8px; }
+      .decks { grid-template-columns: 1fr; grid-template-areas: "deck-a" "deck-b" "deck-c" "mixer"; }
+      .tool-panels { grid-template-columns: 1fr; }
+      .sampler-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mixer { display: flex; }
+      .mixer-title { grid-column: auto; }
+      .mixer-channels { min-height: 165px; }
+      .cross-row { align-self: auto; }
+      .wave-strip { grid-template-columns: auto 1fr auto; gap: 8px; padding: 9px; }
+      .wave-label { font-size: 8px; }
+      .wave-label b { font-size: 10px; }
+      .library-top { align-items: flex-start; flex-direction: column; }
+      .library-tools { width: 100%; }
+      .search { flex: 1; width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <img class="brand-mark" src="sir-kevin-logo.jpg" alt="Sir Kevin S/K logo">
+        <div>
+          <div class="brand-name">SIR. KEVIN VIRTUAL DJ</div>
+          <div class="brand-sub">PRO DJ CONSOLE</div>
+        </div>
+      </div>
+      <nav aria-label="Main menu">
+        <button class="active" type="button">CONSOLE</button>
+        <button type="button" id="libraryJump">LIBRARY</button>
+        <button type="button" id="studioJump">MORE TOOLS</button>
+      </nav>
+      <div class="status"><span class="live-dot">LIVE</span><span>ALL FREE</span><button class="rec" id="recordButton" type="button">● REC</button></div>
+    </header>
+
+    <section class="wave-strip" aria-label="Combined deck waveform preview">
+      <div class="wave-label"><b id="overviewTitleA">DECK A</b><span id="overviewBpmA">-- BPM</span></div>
+      <div class="wave-center"><canvas id="overview"></canvas></div>
+      <div class="wave-label right"><b id="overviewTitleB">DECK B</b><span id="overviewBpmB">-- BPM</span><b id="overviewTitleC" style="margin-top:4px">DECK C</b><span id="overviewBpmC">-- BPM</span><b id="overviewTitleD" style="margin-top:4px">DECK D</b><span id="overviewBpmD">-- BPM</span></div>
+    </section>
+
+    <section class="decks" aria-label="DJ decks and mixer">
+      <article class="deck deck-a" data-deck="a">
+        <div class="deck-head"><span class="deck-id a">01 / DECK A</span><span class="loaded" id="loaded-a">NO TRACK LOADED</span></div>
+        <div class="track-info">
+          <div class="art" id="art-a">A</div>
+          <div>
+            <div class="track-title" id="title-a">Drop a track in</div>
+            <div class="track-artist" id="artist-a">Choose audio from your device</div>
+            <div class="track-meta"><span><strong id="bpm-a">--</strong> BPM</span><span>KEY <strong id="key-a">--</strong></span></div>
+          </div>
+        </div>
+        <canvas class="deck-wave" id="wave-a" aria-label="Deck A waveform"></canvas>
+        <div class="wave-toolbar"><div class="wave-status" id="wave-status-a" aria-live="polite">LOAD A TRACK FOR ITS WAVEFORM</div><button class="wave-loop" id="wave-loop-a" type="button" aria-pressed="false" title="Enable waveform loop selection; click twice to set loop in and out">WAVE LOOP</button></div>
+        <div class="jog-row">
+          <button class="jog-wheel" id="jog-a" type="button" aria-label="Jog wheel Deck A"><span class="jog-center"><img src="sir-kevin-logo.jpg" alt=""></span></button>
+          <div class="jog-note">JOG WHEEL<br>DRAG TO SCRATCH</div>
+        </div>
+        <div class="time-row"><span id="elapsed-a">00:00.0</span><span id="duration-a">00:00.0</span></div>
+        <div class="seek-control"><label for="seek-a">SEEK</label><input id="seek-a" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek Deck A" disabled></div>
+        <div class="transport">
+          <button class="control cue" id="cue-a" type="button">CUE</button>
+          <button class="control play" id="play-a" type="button">▶ PLAY</button>
+          <button class="control" id="load-a" type="button">＋ LOAD</button>
+          <input class="hidden" id="file-a" type="file" accept="audio/*">
+        </div>
+        <div class="transport-options"><button class="control repeat-toggle" id="repeat-a" type="button" aria-pressed="false">↻ REPEAT TRACK</button></div>
+        <div class="lower-controls">
+          <div class="range-control"><label for="volume-a">DECK VOL <output id="volume-out-a">82%</output></label><input id="volume-a" type="range" min="0" max="100" value="82"></div>
+        </div>
+        <div class="range-control horizontal-pitch"><label for="pitch-a">PITCH <output id="pitch-out-a">0.0%</output></label><input id="pitch-a" type="range" min="-8" max="8" value="0" step="0.1"></div>
+        <details class="deck-advanced">
+          <summary>BPM</summary>
+          <div class="range-control"><label for="bpm-input-a">BPM</label><input id="bpm-input-a" type="number" min="40" max="240" step="0.1" placeholder="Set BPM" style="width:100%;background:#0b111a;border:1px solid #344157;border-radius:5px;padding:5px;color:#edf4ff"></div>
+        </details>
+        <details class="performance">
+          <summary>STEMS · VINYL · SLIP · CUES & LOOPS</summary>
+          <div><div class="performance-label">HOT CUES · CLICK TO SET / RECALL</div><div class="hotcues" id="hotcues-a"></div></div>
+          <div><div class="performance-label">BEAT LOOP</div><div class="loop-pads" id="loops-a"></div></div>
+          <div><div class="performance-label">LOOP IN / OUT</div><div class="loop-markers"><button class="pad" id="loop-in-a" type="button">SET IN</button><button class="pad" id="loop-out-a" type="button">SET OUT</button></div><div class="loop-status" id="loop-status-a">Loop off</div></div>
+          <div><div class="performance-label">STEM PAD · FREQUENCY BANDS, NOT AI SOURCE SEPARATION</div><div class="stem-pads" id="stems-a"></div></div>
+          <div class="mode-row"><button class="pad mode-button" id="vinyl-a" type="button" aria-pressed="false">VINYL MODE</button><button class="pad mode-button" id="slip-a" type="button" aria-pressed="false">SLIP MODE</button></div>
+          <button class="control" id="sync-a" type="button">SYNC TO DECK B</button>
+        </details>
+      </article>
+
+      <aside class="mixer" aria-label="Audio mixer">
+        <div class="mixer-title">3-CHANNEL MIXER</div>
+        <div class="mixer-channels">
+          <div class="channel" data-channel="a">
+            <div class="channel-name">CH 01</div>
+            <div class="range-control gain"><label for="gain-a">GAIN</label><input id="gain-a" type="range" min="0" max="150" value="100"><output id="gain-out-a">100%</output></div>
+            <div class="eq">
+              <div class="range-control"><label for="hi-a">HI <output id="hi-out-a">0</output></label><input id="hi-a" type="range" min="-12" max="12" value="0"></div>
+              <div class="range-control"><label for="mid-a">MID <output id="mid-out-a">0</output></label><input id="mid-a" type="range" min="-12" max="12" value="0"></div>
+              <div class="range-control"><label for="low-a">LOW <output id="low-out-a">0</output></label><input id="low-a" type="range" min="-12" max="12" value="0"></div>
+            </div>
+            <div class="vu-meter" role="meter" aria-label="Deck A audio level" aria-valuemin="0" aria-valuemax="100"><div class="vu-meter-fill" id="meter-a"></div></div>
+            <div class="fader-wrap"><label for="fader-a">CHANNEL</label><input class="fader" id="fader-a" type="range" min="0" max="100" value="82"></div>
+          </div>
+          <div class="channel" data-channel="b">
+            <div class="channel-name">CH 02</div>
+            <div class="range-control gain"><label for="gain-b">GAIN</label><input id="gain-b" type="range" min="0" max="150" value="100"><output id="gain-out-b">100%</output></div>
+            <div class="eq">
+              <div class="range-control"><label for="hi-b">HI <output id="hi-out-b">0</output></label><input id="hi-b" type="range" min="-12" max="12" value="0"></div>
+              <div class="range-control"><label for="mid-b">MID <output id="mid-out-b">0</output></label><input id="mid-b" type="range" min="-12" max="12" value="0"></div>
+              <div class="range-control"><label for="low-b">LOW <output id="low-out-b">0</output></label><input id="low-b" type="range" min="-12" max="12" value="0"></div>
+            </div>
+            <div class="vu-meter" role="meter" aria-label="Deck B audio level" aria-valuemin="0" aria-valuemax="100"><div class="vu-meter-fill" id="meter-b"></div></div>
+            <div class="fader-wrap"><label for="fader-b">CHANNEL</label><input class="fader" id="fader-b" type="range" min="0" max="100" value="82"></div>
+          </div>
+          <div class="channel" data-channel="c">
+            <div class="channel-name">CH 03</div>
+            <div class="range-control gain"><label for="gain-c">GAIN</label><input id="gain-c" type="range" min="0" max="150" value="100"><output id="gain-out-c">100%</output></div>
+            <div class="eq">
+              <div class="range-control"><label for="hi-c">HI <output id="hi-out-c">0</output></label><input id="hi-c" type="range" min="-12" max="12" value="0"></div>
+              <div class="range-control"><label for="mid-c">MID <output id="mid-out-c">0</output></label><input id="mid-c" type="range" min="-12" max="12" value="0"></div>
+              <div class="range-control"><label for="low-c">LOW <output id="low-out-c">0</output></label><input id="low-c" type="range" min="-12" max="12" value="0"></div>
+            </div>
+            <div class="vu-meter" role="meter" aria-label="Deck C audio level" aria-valuemin="0" aria-valuemax="100"><div class="vu-meter-fill" id="meter-c"></div></div>
+            <div class="fader-wrap"><label for="fader-c">CHANNEL</label><input class="fader" id="fader-c" type="range" min="0" max="100" value="82"></div>
+          </div>
+        </div>
+        <div class="cue-monitor">
+          <label><input type="checkbox" id="headphone-a"> CUE A</label>
+          <label><input type="checkbox" id="headphone-b"> CUE B</label>
+          <label><input type="checkbox" id="headphone-c"> CUE C</label>
+        </div>
+        <div class="headphone-settings">
+          <div class="range-control"><label for="headphoneVolume">HEADPHONE VOL <output id="headphoneVolumeOut">100%</output></label><input id="headphoneVolume" type="range" min="0" max="100" value="100"></div>
+          <div class="range-control"><label for="headphoneMix">CUE / MASTER <output id="headphoneMixOut">CUE</output></label><input id="headphoneMix" type="range" min="0" max="100" value="0"></div>
+        </div>
+        <div class="master-meter"><span>MASTER</span><div class="vu-meter" role="meter" aria-label="Master audio level" aria-valuemin="0" aria-valuemax="100"><div class="vu-meter-fill" id="masterMeter"></div></div></div>
+        <div class="cross-row">
+            <label for="crossfader"><span>A · C</span><span>A · C ◂ ▸ B · D</span><span>B · D</span></label>
+          <input id="crossfader" type="range" min="0" max="100" value="50">
+        </div>
+      </aside>
+
+      <article class="deck deck-b" data-deck="b">
+        <div class="deck-head"><span class="deck-id b">02 / DECK B</span><span class="loaded" id="loaded-b">NO TRACK LOADED</span></div>
+        <div class="track-info">
+          <div class="art" id="art-b">B</div>
+          <div>
+            <div class="track-title" id="title-b">Your next track</div>
+            <div class="track-artist" id="artist-b">Choose audio from your device</div>
+            <div class="track-meta"><span><strong id="bpm-b">--</strong> BPM</span><span>KEY <strong id="key-b">--</strong></span></div>
+          </div>
+        </div>
+        <canvas class="deck-wave" id="wave-b" aria-label="Deck B waveform"></canvas>
+        <div class="wave-toolbar"><div class="wave-status" id="wave-status-b" aria-live="polite">LOAD A TRACK FOR ITS WAVEFORM</div><button class="wave-loop" id="wave-loop-b" type="button" aria-pressed="false" title="Enable waveform loop selection; click twice to set loop in and out">WAVE LOOP</button></div>
+        <div class="jog-row">
+          <button class="jog-wheel" id="jog-b" type="button" aria-label="Jog wheel Deck B"><span class="jog-center"><img src="sir-kevin-logo.jpg" alt=""></span></button>
+          <div class="jog-note">JOG WHEEL<br>DRAG TO SCRATCH</div>
+        </div>
+        <div class="time-row"><span id="elapsed-b">00:00.0</span><span id="duration-b">00:00.0</span></div>
+        <div class="seek-control"><label for="seek-b">SEEK</label><input id="seek-b" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek Deck B" disabled></div>
+        <div class="transport">
+          <button class="control cue" id="cue-b" type="button">CUE</button>
+          <button class="control play" id="play-b" type="button">▶ PLAY</button>
+          <button class="control" id="load-b" type="button">＋ LOAD</button>
+          <input class="hidden" id="file-b" type="file" accept="audio/*">
+        </div>
+        <div class="transport-options"><button class="control repeat-toggle" id="repeat-b" type="button" aria-pressed="false">↻ REPEAT TRACK</button></div>
+        <div class="lower-controls">
+          <div class="range-control"><label for="volume-b">DECK VOL <output id="volume-out-b">82%</output></label><input id="volume-b" type="range" min="0" max="100" value="82"></div>
+        </div>
+        <div class="range-control horizontal-pitch"><label for="pitch-b">PITCH <output id="pitch-out-b">0.0%</output></label><input id="pitch-b" type="range" min="-8" max="8" value="0" step="0.1"></div>
+        <details class="deck-advanced">
+          <summary>BPM</summary>
+          <div class="range-control"><label for="bpm-input-b">BPM</label><input id="bpm-input-b" type="number" min="40" max="240" step="0.1" placeholder="Set BPM" style="width:100%;background:#0b111a;border:1px solid #344157;border-radius:5px;padding:5px;color:#edf4ff"></div>
+        </details>
+        <details class="performance">
+          <summary>STEMS · VINYL · SLIP · CUES & LOOPS</summary>
+          <div><div class="performance-label">HOT CUES · CLICK TO SET / RECALL</div><div class="hotcues" id="hotcues-b"></div></div>
+          <div><div class="performance-label">BEAT LOOP</div><div class="loop-pads" id="loops-b"></div></div>
+          <div><div class="performance-label">LOOP IN / OUT</div><div class="loop-markers"><button class="pad" id="loop-in-b" type="button">SET IN</button><button class="pad" id="loop-out-b" type="button">SET OUT</button></div><div class="loop-status" id="loop-status-b">Loop off</div></div>
+          <div><div class="performance-label">STEM PAD · FREQUENCY BANDS, NOT AI SOURCE SEPARATION</div><div class="stem-pads" id="stems-b"></div></div>
+          <div class="mode-row"><button class="pad mode-button" id="vinyl-b" type="button" aria-pressed="false">VINYL MODE</button><button class="pad mode-button" id="slip-b" type="button" aria-pressed="false">SLIP MODE</button></div>
+          <button class="control" id="sync-b" type="button">SYNC TO DECK A</button>
+        </details>
+      </article>
+      <article class="deck deck-c" data-deck="c">
+        <div class="deck-head"><span class="deck-id">03 / DECK C</span><span class="loaded" id="loaded-c">NO TRACK LOADED</span></div>
+        <div class="track-info">
+          <div class="art" id="art-c">C</div>
+          <div>
+            <div class="track-title" id="title-c">Third deck ready</div>
+            <div class="track-artist" id="artist-c">Choose audio from your device</div>
+            <div class="track-meta"><span><strong id="bpm-c">--</strong> BPM</span><span>KEY <strong id="key-c">--</strong></span></div>
+          </div>
+        </div>
+        <canvas class="deck-wave" id="wave-c" aria-label="Deck C waveform"></canvas>
+        <div class="wave-toolbar"><div class="wave-status" id="wave-status-c" aria-live="polite">LOAD A TRACK FOR ITS WAVEFORM</div><button class="wave-loop" id="wave-loop-c" type="button" aria-pressed="false" title="Enable waveform loop selection; click twice to set loop in and out">WAVE LOOP</button></div>
+        <div class="jog-row">
+          <button class="jog-wheel" id="jog-c" type="button" aria-label="Jog wheel Deck C"><span class="jog-center"><img src="sir-kevin-logo.jpg" alt=""></span></button>
+          <div class="jog-note">JOG WHEEL<br>DRAG TO SCRATCH</div>
+        </div>
+        <div class="time-row"><span id="elapsed-c">00:00.0</span><span id="duration-c">00:00.0</span></div>
+        <div class="seek-control"><label for="seek-c">SEEK</label><input id="seek-c" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek Deck C" disabled></div>
+        <div class="transport">
+          <button class="control cue" id="cue-c" type="button">CUE</button>
+          <button class="control play" id="play-c" type="button">▶ PLAY</button>
+          <button class="control" id="load-c" type="button">＋ LOAD</button>
+          <input class="hidden" id="file-c" type="file" accept="audio/*">
+        </div>
+        <div class="transport-options"><button class="control repeat-toggle" id="repeat-c" type="button" aria-pressed="false">↻ REPEAT TRACK</button></div>
+        <div class="lower-controls">
+          <div class="range-control"><label for="volume-c">DECK VOL <output id="volume-out-c">82%</output></label><input id="volume-c" type="range" min="0" max="100" value="82"></div>
+        </div>
+        <div class="range-control horizontal-pitch"><label for="pitch-c">PITCH <output id="pitch-out-c">0.0%</output></label><input id="pitch-c" type="range" min="-8" max="8" value="0" step="0.1"></div>
+        <details class="deck-advanced">
+          <summary>BPM</summary>
+          <div class="range-control"><label for="bpm-input-c">BPM</label><input id="bpm-input-c" type="number" min="40" max="240" step="0.1" placeholder="Set BPM" style="width:100%;background:#0b111a;border:1px solid #344157;border-radius:5px;padding:5px;color:#edf4ff"></div>
+        </details>
+        <details class="performance">
+          <summary>STEMS · VINYL · SLIP · CUES & LOOPS</summary>
+          <div><div class="performance-label">HOT CUES · CLICK TO SET / RECALL</div><div class="hotcues" id="hotcues-c"></div></div>
+          <div><div class="performance-label">BEAT LOOP</div><div class="loop-pads" id="loops-c"></div></div>
+          <div><div class="performance-label">LOOP IN / OUT</div><div class="loop-markers"><button class="pad" id="loop-in-c" type="button">SET IN</button><button class="pad" id="loop-out-c" type="button">SET OUT</button></div><div class="loop-status" id="loop-status-c">Loop off</div></div>
+          <div><div class="performance-label">STEM PAD · FREQUENCY BANDS, NOT AI SOURCE SEPARATION</div><div class="stem-pads" id="stems-c"></div></div>
+          <div class="mode-row"><button class="pad mode-button" id="vinyl-c" type="button" aria-pressed="false">VINYL MODE</button><button class="pad mode-button" id="slip-c" type="button" aria-pressed="false">SLIP MODE</button></div>
+          <button class="control" id="sync-c" type="button">SYNC TO DECK A</button>
+        </details>
+      </article>
+    </section>
+
+    <details class="studio-tools" id="studioTools">
+      <summary>MORE TOOLS · VOICE, EFFECTS & SAMPLER</summary>
+      <section class="tool-panels" aria-label="Performance tools">
+      <article class="tool-card">
+        <div class="tool-title">VOICE SHOUT-OUT</div>
+        <textarea class="voice-text" id="shoutText" aria-label="Shout-out text">Sir Kevin on the mix — let's go!</textarea>
+        <div class="tool-row">
+          <select class="tool-select" id="voiceGender" aria-label="Voice style">
+            <option value="female">Female voice</option>
+            <option value="male">Male voice</option>
+          </select>
+          <select class="tool-select" id="voiceChoice" aria-label="Available speech voice"></select>
+          <button class="small-button" id="speakButton" type="button">▶ SPEAK</button>
+          <button class="small-button" id="stopSpeakButton" type="button">■ STOP</button>
+        </div>
+        <div class="voice-status" id="voiceStatus" aria-live="polite">Uses speech voices available in your browser/device.</div>
+      </article>
+      <article class="tool-card">
+        <div class="tool-title">DECK AUDIO FX & SAMPLER</div>
+        <div class="tool-row">
+          <select class="tool-select" id="effectDeck" aria-label="Effect deck"><option value="a">Deck A</option><option value="b">Deck B</option><option value="c">Deck C</option><option value="d">Deck D</option></select>
+          <select class="tool-select" id="effectMode" aria-label="Audio effect">
+            <option value="off">Effect off</option><option value="lowpass">Low-pass filter</option><option value="highpass">High-pass filter</option><option value="echo">Echo</option>
+          </select>
+          <input id="effectAmount" type="range" min="0" max="100" value="50" aria-label="Effect amount">
+        </div>
+        <div class="sampler-grid" id="samplerPads" aria-label="Eight audio sample pads"></div>
+        <div class="voice-status" id="samplerStatus" aria-live="polite">Load your own audio samples. Assignments are saved on this device.</div>
+        <div class="tool-title" style="margin-top:12px">MASTER AUDIO FX</div>
+        <div class="tool-row">
+          <select class="tool-select" id="masterFx" aria-label="Master audio effect">
+            <option value="off">Off</option><option value="lowpass">Master low-pass</option><option value="highpass">Master high-pass</option>
+          </select>
+          <input id="masterFxAmount" type="range" min="0" max="100" value="100" aria-label="Master effect amount">
+        </div>
+        <div class="tool-row">
+          <label class="tool-description" for="masterVolume">MASTER VOLUME</label>
+          <input id="masterVolume" type="range" min="0" max="100" value="100" aria-label="Master volume">
+        </div>
+        <div class="tool-row"><label class="tool-description" for="loopMaster">LOOP / BEAT MASTER</label><select class="tool-select" id="loopMaster"><option value="a">Deck A</option><option value="b">Deck B</option><option value="c">Deck C</option><option value="d">Deck D</option></select></div>
+      </article>
+      <article class="tool-card">
+        <div class="tool-title">SKIN & LAYOUT</div>
+        <div class="tool-row"><label class="tool-description" for="skinSelect">Colour theme</label><select class="tool-select" id="skinSelect"><option value="logo">S/K Logo Colours</option><option value="ocean">Ocean Blue</option><option value="violet">Violet Pulse</option><option value="sunset">Sunset Gold</option></select></div>
+        <div class="tool-row"><label class="tool-description" for="layoutSelect">Deck layout</label><select class="tool-select" id="layoutSelect"><option value="three">Four decks across</option><option value="duo">Two rows of two decks</option><option value="stacked">Stacked decks</option><option value="focus">Focus one deck</option></select></div>
+        <div class="tool-row" id="focusDeckRow" hidden><label class="tool-description" for="focusDeck">Focused deck</label><select class="tool-select" id="focusDeck"><option value="a">Deck A</option><option value="b">Deck B</option><option value="c">Deck C</option><option value="d">Deck D</option></select></div>
+      </article>
+      <article class="tool-card">
+        <div class="tool-title">AUDIO INTERFACE</div>
+        <div class="tool-description">Select separate outputs to route the master mix to speakers and pre-listen to cued decks on headphones. Separate physical outputs require a multi-output interface.</div>
+        <div class="tool-row"><label class="tool-description" for="audioOutput">MASTER / SPEAKERS</label><select class="tool-select" id="audioOutput" aria-label="Master audio output device"><option value="">System default output</option></select></div>
+        <div class="tool-row"><label class="tool-description" for="headphoneOutput">HEADPHONES / CUE</label><select class="tool-select" id="headphoneOutput" aria-label="Headphone output device"><option value="">System default output</option></select><button class="small-button" id="refreshOutputs" type="button">REFRESH</button></div>
+        <div class="tool-status" id="audioOutputStatus">System default master and headphone outputs selected.</div>
+      </article>
+      <article class="tool-card">
+        <div class="tool-title">DJ CONTROLLER · MIDI</div>
+        <div class="tool-description">Connect a MIDI controller, then select its input. MIDI note 60–63 plays Deck A–D; note 48–51 cues A–D.</div>
+        <div class="tool-row"><select class="tool-select" id="midiInput" aria-label="MIDI controller input"><option value="">No controller connected</option></select><button class="small-button" id="connectMidi" type="button">CONNECT</button></div>
+        <div class="tool-status" id="midiStatus">Controller access is optional and depends on device/browser support.</div>
+      </article>
+      <article class="tool-card">
+        <div class="tool-title">INTERNET RECORDS · SEARCH</div>
+        <div class="tool-description">Search official provider pages. Streaming rights and commercial-use permissions vary by track, account, venue, and country. The app does not rip or record streams.</div>
+        <div class="tool-row"><input class="tool-input" id="onlineQuery" type="search" placeholder="Search artist or track" aria-label="Search online music"></div>
+        <div class="provider-links" id="providerLinks">
+          <a data-provider="soundcloud" href="https://soundcloud.com/search?q=" target="_blank" rel="noopener noreferrer">SoundCloud</a>
+          <a data-provider="youtube" href="https://www.youtube.com/results?search_query=" target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a data-provider="audius" href="https://audius.co/search/" target="_blank" rel="noopener noreferrer">Audius</a>
+          <a href="https://www.youtube.com/audiolibrary" target="_blank" rel="noopener noreferrer">YouTube Audio Library</a>
+          <a href="https://freemusicarchive.org/" target="_blank" rel="noopener noreferrer">Free Music Archive</a>
+        </div>
+        <div class="tool-status">Free discovery is not a commercial-mix licence. Check each track’s terms and venue/public-performance rights.</div>
+      </article>
+      <article class="tool-card">
+        <div class="tool-title">KEYBOARD · TUTORIAL · EXTENSIONS</div>
+        <div class="shortcut-list"><kbd>1 / 2 / 3 / 4</kbd><span>Select deck A / B / C / D</span><kbd>Space</kbd><span>Play or pause selected deck</span><kbd>Q / W / E / R</kbd><span>Set or return to deck cue</span><kbd>J</kbd><span>Open the quick tutorial</span></div>
+        <div class="tool-row" style="margin-top:10px"><button class="small-button" id="openTutorial" type="button">OPEN TUTORIAL</button></div>
+        <div class="tool-description">Extensions/plugins are not loaded in this prototype. This avoids installing untrusted code into the audio app.</div>
+      </article>
+      </section>
+    </details>
+
+    <section class="library" id="library" aria-label="Music library">
+      <div class="library-top">
+        <div class="library-title">MUSIC LIBRARY <span style="color:var(--muted);font-weight:500">/ LOCAL TRACKS</span></div>
+        <div class="library-tools">
+          <input class="search" id="search" type="search" placeholder="Search title or artist…" aria-label="Search music library">
+          <button class="small-button" id="addTracks" type="button">＋ ADD TRACKS</button>
+          <input class="hidden" id="file-library" type="file" accept="audio/*" multiple>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Track / Artist</th><th>BPM</th><th>Key</th><th>Duration</th><th>Load to</th></tr></thead>
+          <tbody id="trackRows"></tbody>
+        </table>
+      </div>
+    </section>
+    <div class="footer"><span>READY FOR YOUR NEXT MIX</span><span>LOCAL AUDIO · DESKTOP EDITION</span></div>
+  </main>
+  <dialog class="tutorial-dialog" id="tutorialDialog">
+    <h2 style="margin-top:0">Quick-start tutorial</h2>
+    <ol>
+      <li>Select <b>＋ LOAD</b> on any deck and choose an audio file.</li>
+      <li>Press <b>PLAY</b>; use the circular logo disc to scratch or move the playhead.</li>
+      <li>Set the horizontal <b>PITCH</b> control, deck volume, EQ, and mixer fader.</li>
+      <li>Open <b>STEMS · VINYL · SLIP · CUES & LOOPS</b> for performance pads.</li>
+      <li>Open <b>MORE TOOLS</b> for effects, sampler, recording, MIDI, skins, and online-search links.</li>
+    </ol>
+    <p class="tool-description">The stem pad splits frequency ranges; it does not perform AI vocal/instrument separation. Online-service searches open the providers' own sites and do not grant music licences.</p>
+    <button class="small-button" id="closeTutorial" type="button">CLOSE</button>
+  </dialog>
+  <script src="audio-engine.js"></script>
+  <script>
+    (() => {
+      const deckGrid = document.querySelector(".decks");
+      const deckCNode = deckGrid.querySelector(".deck-c");
+      const deckDNode = deckCNode.cloneNode(true);
+      deckDNode.classList.remove("deck-c");
+      deckDNode.classList.add("deck-d");
+      deckDNode.dataset.deck = "d";
+      const deckDIds = new Map();
+      deckDNode.querySelectorAll("[id]").forEach((element) => {
+        const oldId = element.id;
+        const newId = oldId.replace(/-c$/, "-d");
+        deckDIds.set(oldId, newId);
+        element.id = newId;
+      });
+      deckDNode.querySelectorAll("[for]").forEach((element) => {
+        const newId = deckDIds.get(element.htmlFor);
+        if (newId) element.htmlFor = newId;
+      });
+      deckDNode.querySelectorAll('[aria-label]').forEach((element) => {
+        element.setAttribute("aria-label", element.getAttribute("aria-label").replace(/Deck C/g, "Deck D"));
+      });
+      deckDNode.querySelector(".deck-id").textContent = "04 / DECK D";
+      deckDNode.querySelector(".jog-note").innerHTML = "JOG WHEEL<br>DRAG TO SCRATCH";
+      deckDNode.querySelector(".deck-wave").setAttribute("aria-label", "Deck D waveform");
+      deckDNode.querySelector(".loaded").textContent = "NO TRACK LOADED";
+      deckDNode.querySelector(".track-title").textContent = "Load a track";
+      deckDNode.querySelector(".track-artist").textContent = "Choose audio from your device";
+      deckDNode.querySelector(".art").textContent = "D";
+      deckDNode.querySelectorAll(".channel-name").forEach((element) => { element.textContent = "CH 04"; });
+      deckGrid.append(deckDNode);
+
+      const mixerChannels = document.querySelector(".mixer-channels");
+      const channelDNode = mixerChannels.querySelector('[data-channel="c"]').cloneNode(true);
+      channelDNode.dataset.channel = "d";
+      const channelDIds = new Map();
+      channelDNode.querySelectorAll("[id]").forEach((element) => {
+        const oldId = element.id;
+        const newId = oldId.replace(/-c$/, "-d");
+        channelDIds.set(oldId, newId);
+        element.id = newId;
+      });
+      channelDNode.querySelectorAll("[for]").forEach((element) => {
+        const newId = channelDIds.get(element.htmlFor);
+        if (newId) element.htmlFor = newId;
+      });
+      channelDNode.querySelector(".channel-name").textContent = "CH 04";
+      mixerChannels.append(channelDNode);
+      const cueDNode = document.querySelector("#headphone-c").closest("label").cloneNode(true);
+      const cueDInput = cueDNode.querySelector("input");
+      cueDInput.id = "headphone-d";
+      cueDNode.htmlFor = cueDInput.id;
+      cueDNode.lastChild.textContent = " CUE D";
+      document.querySelector(".cue-monitor").append(cueDNode);
+      document.querySelector(".mixer-title").textContent = "4-CHANNEL MIXER";
+      document.querySelector(".cross-row label span:nth-child(2)").textContent = "A · C ◂ ▸ B · D";
+      deckDNode.querySelector('[id^="sync-"]').textContent = "SYNC TO OTHER DECK";
+
+      const decks = Object.fromEntries(["a", "b", "c", "d"].map((key) => [
+        key,
+        {
+          audio: new Audio(),
+          track: null,
+          cue: 0,
+          repeatTrack: false,
+          hotCues: [null, null, null, null],
+          stems: [true, true, true],
+          loop: null,
+          loopIn: null,
+          waveformLoopIn: null,
+          waveformLoopMode: false,
+          vinyl: false,
+          slip: false,
+          jogSession: null
+        }
+      ]));
+      const tracks = [];
+      const audioEngine = new window.SirKevinAudioEngine(
+        ["a", "b", "c", "d"],
+        { a: decks.a.audio, b: decks.b.audio, c: decks.c.audio, d: decks.d.audio }
+      );
+      let activeDeck = "a";
+      let recorder = null;
+      let recordedChunks = [];
+      const samplerPads = Array.from({ length: 8 }, () => ({ name: "", buffer: null, loop: false, volume: 1 }));
+      let samplerSaveQueue = Promise.resolve();
+      const $ = (id) => document.getElementById(id);
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const formatTime = (seconds) => {
+        if (!Number.isFinite(seconds)) return "00:00.0";
+        const minutes = Math.floor(seconds / 60);
+        const remainder = seconds % 60;
+        return `${String(minutes).padStart(2, "0")}:${remainder.toFixed(1).padStart(4, "0")}`;
+      };
+      const basename = (name) => name.replace(/\.[^.]+$/, "");
+
+      function samplerMessage(message) {
+        $("samplerStatus").textContent = message;
+      }
+      function updateSamplerPad(index) {
+        const card = $("samplerPads").querySelector(`[data-pad="${index}"]`);
+        const pad = samplerPads[index];
+        const trigger = card.querySelector('[data-action="trigger"]');
+        const stop = card.querySelector('[data-action="stop"]');
+        const clear = card.querySelector('[data-action="clear"]');
+        const playing = audioEngine.isSamplerPadPlaying(index);
+        card.querySelector(".sampler-pad-file").textContent = pad.name || "No sample loaded";
+        card.querySelector(".sampler-pad-file").title = pad.name || "No sample loaded";
+        trigger.disabled = !pad.buffer;
+        trigger.classList.toggle("active", playing);
+        trigger.textContent = playing ? "PLAYING" : "TRIGGER";
+        stop.disabled = !playing;
+        clear.disabled = !pad.buffer;
+      }
+      function buildSamplerPads() {
+        const container = $("samplerPads");
+        container.replaceChildren();
+        samplerPads.forEach((pad, index) => {
+          const card = document.createElement("div");
+          card.className = "sampler-pad-card";
+          card.dataset.pad = String(index);
+          const title = document.createElement("div");
+          title.className = "sampler-pad-title";
+          title.textContent = `PAD ${String(index + 1).padStart(2, "0")}`;
+          const fileName = document.createElement("div");
+          fileName.className = "sampler-pad-file";
+          fileName.title = pad.name;
+          const trigger = document.createElement("button");
+          trigger.type = "button";
+          trigger.className = "small-button sampler-trigger";
+          trigger.dataset.action = "trigger";
+          trigger.textContent = "TRIGGER";
+          const actions = document.createElement("div");
+          actions.className = "sampler-pad-actions";
+          [["stop", "STOP"], ["load", "LOAD"], ["clear", "CLEAR"]].forEach(([action, text]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "small-button";
+            button.dataset.action = action;
+            button.textContent = text;
+            actions.append(button);
+          });
+          const options = document.createElement("div");
+          options.className = "sampler-pad-options";
+          const loopLabel = document.createElement("label");
+          const loop = document.createElement("input");
+          loop.type = "checkbox";
+          loop.checked = pad.loop;
+          loop.dataset.action = "loop";
+          loopLabel.append(loop, document.createTextNode("LOOP"));
+          const volumeLabel = document.createElement("label");
+          const volume = document.createElement("input");
+          volume.type = "range";
+          volume.className = "sampler-pad-volume";
+          volume.min = "0";
+          volume.max = "100";
+          volume.value = String(Math.round(pad.volume * 100));
+          volume.dataset.action = "volume";
+          const volumeOutput = document.createElement("output");
+          volumeOutput.textContent = `${volume.value}%`;
+          volumeLabel.append(volume, volumeOutput);
+          options.append(loopLabel, volumeLabel);
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.accept = "audio/*";
+          fileInput.hidden = true;
+          fileInput.dataset.action = "file";
+          card.append(title, fileName, trigger, actions, options, fileInput);
+          container.append(card);
+          updateSamplerPad(index);
+        });
+      }
+      function saveSamplerSettings() {
+        if (!window.sirKevinSampler) return;
+        const settings = samplerPads.map((pad, index) => ({
+          pad: index,
+          loop: pad.loop,
+          volume: pad.volume
+        }));
+        samplerSaveQueue = samplerSaveQueue
+          .then(() => window.sirKevinSampler.saveSettings(settings))
+          .catch((error) => samplerMessage(`Could not save sampler settings: ${error.message}`));
+      }
+      async function decodeAndSetSamplerSample(index, name, data) {
+        try {
+          samplerPads[index].buffer = await audioEngine.decodeSamplerSample(data);
+          samplerPads[index].name = name;
+          updateSamplerPad(index);
+        } catch (error) {
+          samplerPads[index].buffer = null;
+          samplerPads[index].name = "";
+          updateSamplerPad(index);
+          throw new Error(`Could not decode "${name}". Try a WAV, MP3, OGG, FLAC, or M4A audio file. ${error.message}`);
+        }
+      }
+      async function chooseSamplerSample(index) {
+        if (!window.sirKevinSampler) {
+          $("samplerPads").querySelector(`[data-pad="${index}"] [data-action="file"]`).click();
+          return;
+        }
+        const selected = await window.sirKevinSampler.chooseSample(index);
+        if (!selected) return;
+        audioEngine.stopSamplerPad(index);
+        samplerPads[index].loop = selected.loop;
+        samplerPads[index].volume = selected.volume;
+        updateSamplerPad(index);
+        try {
+          const sample = await window.sirKevinSampler.readSample(index);
+          if (!sample) throw new Error("The imported sample could not be read from app storage.");
+          await decodeAndSetSamplerSample(index, sample.name, sample.data);
+          samplerMessage(`Loaded ${sample.name} into Pad ${index + 1}.`);
+        } catch (error) {
+          samplerPads[index].loop = selected.loop;
+          samplerPads[index].volume = selected.volume;
+          await window.sirKevinSampler.clearSample(index);
+          updateSamplerPad(index);
+          samplerMessage(error.message);
+        }
+      }
+      async function restoreSamplerSamples() {
+        if (!window.sirKevinSampler) {
+          samplerMessage("Load samples for this browser session. The installed desktop app saves assignments between sessions.");
+          return;
+        }
+        try {
+          const state = await window.sirKevinSampler.getState();
+          for (let index = 0; index < samplerPads.length; index++) {
+            const saved = state.pads[index];
+            samplerPads[index].loop = saved.loop;
+            samplerPads[index].volume = saved.volume;
+            const card = $("samplerPads").querySelector(`[data-pad="${index}"]`);
+            card.querySelector('[data-action="loop"]').checked = saved.loop;
+            const volume = card.querySelector('[data-action="volume"]');
+            volume.value = String(Math.round(saved.volume * 100));
+            volume.nextElementSibling.textContent = `${volume.value}%`;
+            if (saved.id) {
+              const sample = await window.sirKevinSampler.readSample(index);
+              if (!sample) throw new Error(`Saved sample for Pad ${index + 1} is missing.`);
+              await decodeAndSetSamplerSample(index, sample.name, sample.data);
+            }
+          }
+          samplerMessage("Sampler assignments restored from this device.");
+        } catch (error) {
+          samplerMessage(`Could not restore sampler samples: ${error.message}`);
+        }
+      }
+      async function handleSamplerClick(event) {
+        const button = event.target.closest("button[data-action]");
+        if (!button || !$("samplerPads").contains(button)) return;
+        const index = Number(button.closest("[data-pad]").dataset.pad);
+        const pad = samplerPads[index];
+        try {
+          if (button.dataset.action === "load") {
+            await chooseSamplerSample(index);
+          } else if (button.dataset.action === "trigger") {
+            if (audioEngine.isSamplerPadPlaying(index)) {
+              audioEngine.stopSamplerPad(index);
+              updateSamplerPad(index);
+            } else {
+              await audioEngine.playSamplerPad(index, pad.buffer, pad.loop, pad.volume, () => updateSamplerPad(index));
+              updateSamplerPad(index);
+            }
+          } else if (button.dataset.action === "stop") {
+            audioEngine.stopSamplerPad(index);
+            updateSamplerPad(index);
+          } else if (button.dataset.action === "clear") {
+            audioEngine.stopSamplerPad(index);
+            if (window.sirKevinSampler) await window.sirKevinSampler.clearSample(index);
+            pad.buffer = null;
+            pad.name = "";
+            updateSamplerPad(index);
+            samplerMessage(`Cleared Pad ${index + 1}.`);
+          }
+        } catch (error) {
+          samplerMessage(`Sampler pad ${index + 1}: ${error.message}`);
+        }
+      }
+      async function handleSamplerFile(event) {
+        const input = event.target.closest('input[data-action="file"]');
+        if (!input || !input.files.length) return;
+        const index = Number(input.closest("[data-pad]").dataset.pad);
+        const file = input.files[0];
+        try {
+          audioEngine.stopSamplerPad(index);
+          await decodeAndSetSamplerSample(index, file.name, await file.arrayBuffer());
+          samplerMessage(`Loaded ${file.name} into Pad ${index + 1}.`);
+        } catch (error) {
+          samplerMessage(error.message);
+        } finally {
+          input.value = "";
+        }
+      }
+
+      function ensureAudioGraph(key) {
+        audioEngine.ensureDeck(key);
+        updateAudioGain(key);
+        updateEQ(key);
+        updateEffect(key);
+        updateStems(key);
+        updateMasterFx();
+      }
+
+      function updateAudioGain(key) {
+        audioEngine.setChannelMix(
+          key,
+          Number($("volume-" + key).value) / 100,
+          Number($("fader-" + key).value) / 100,
+          Number($("gain-" + key).value) / 100,
+          Number($("crossfader").value) / 100
+        );
+      }
+      function updateAllAudioGains() {
+        ["a", "b", "c", "d"].forEach(updateAudioGain);
+      }
+      function updateEQ(key) {
+        audioEngine.setEQ(key, {
+          low: Number($("low-" + key).value),
+          mid: Number($("mid-" + key).value),
+          hi: Number($("hi-" + key).value)
+        });
+      }
+      function updateEffect(key) {
+        if ($("effectDeck").value !== key) return;
+        const mode = $("effectMode").value;
+        const amount = Number($("effectAmount").value) / 100;
+        audioEngine.setEffect(key, mode, amount);
+      }
+      function updateStems(key) {
+        audioEngine.setStems(key, decks[key].stems);
+      }
+      function buildStemPads(key) {
+        const container = $("stems-" + key);
+        ["BASS", "MID", "HIGH"].forEach((name, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "pad";
+          button.textContent = name;
+          button.setAttribute("aria-pressed", "true");
+          button.title = `${name} frequency band. This is not AI source separation.`;
+          button.addEventListener("click", () => {
+            decks[key].stems[index] = !decks[key].stems[index];
+            button.classList.toggle("muted", !decks[key].stems[index]);
+            button.setAttribute("aria-pressed", String(decks[key].stems[index]));
+            updateStems(key);
+          });
+          container.append(button);
+        });
+      }
+      function clearLoop(key) {
+        const deck = decks[key];
+        deck.loop = null;
+        deck.loopIn = null;
+        deck.waveformLoopIn = null;
+        deck.waveformLoopMode = false;
+        $("wave-loop-" + key).classList.remove("active");
+        $("wave-loop-" + key).setAttribute("aria-pressed", "false");
+        $("loops-" + key).querySelectorAll(".pad").forEach((pad) => pad.classList.remove("active"));
+        $("loop-in-" + key).classList.remove("active");
+        $("loop-out-" + key).classList.remove("active");
+        $("loop-status-" + key).textContent = "Loop off";
+        drawWave(key);
+      }
+      function setWaveformLoopPoint(key, fraction) {
+        const deck = decks[key];
+        const duration = deck.audio.duration;
+        if (!deck.track || !Number.isFinite(duration) || duration <= 0) return;
+        const view = waveformView(key);
+        const position = clamp(fraction, 0, 1) * view.duration + view.start;
+        if (deck.waveformLoopIn === null) {
+          deck.waveformLoopIn = position;
+          deck.loop = null;
+          $("loops-" + key).querySelectorAll(".pad").forEach((pad) => pad.classList.remove("active"));
+          $("loop-in-" + key).classList.remove("active");
+          $("loop-out-" + key).classList.remove("active");
+          $("loop-status-" + key).textContent = `WAVE IN ${formatTime(position)} · CLICK OUT`;
+        } else if (position > deck.waveformLoopIn) {
+          deck.loop = { start: deck.waveformLoopIn, duration: position - deck.waveformLoopIn, mode: "waveform" };
+          deck.waveformLoopMode = false;
+          $("loops-" + key).querySelectorAll(".pad").forEach((pad) => pad.classList.remove("active"));
+          $("loop-in-" + key).classList.remove("active");
+          $("loop-out-" + key).classList.remove("active");
+          $("wave-loop-" + key).classList.remove("active");
+          $("wave-loop-" + key).setAttribute("aria-pressed", "false");
+          $("loop-status-" + key).textContent = `WAVE LOOP ${formatTime(deck.loop.start)} – ${formatTime(position)}`;
+        } else {
+          deck.waveformLoopIn = position;
+          deck.loop = null;
+          $("loop-status-" + key).textContent = `WAVE IN ${formatTime(position)} · CLICK OUT`;
+        }
+        drawWave(key);
+      }
+      function setLoopInOut(key, kind) {
+        const deck = decks[key];
+        if (!deck.track) { $("loop-status-" + key).textContent = "Load a track first"; return; }
+        if (kind === "in") {
+          clearLoop(key);
+          deck.loopIn = deck.audio.currentTime;
+          $("loop-in-" + key).classList.add("active");
+          $("loop-status-" + key).textContent = `IN ${formatTime(deck.loopIn)} · set OUT`;
+          return;
+        }
+        if (deck.loopIn === null || deck.audio.currentTime <= deck.loopIn) {
+          $("loop-status-" + key).textContent = "Set IN, then set OUT later in the track";
+          return;
+        }
+        deck.loop = { start: deck.loopIn, duration: deck.audio.currentTime - deck.loopIn, mode: "markers" };
+        $("loop-out-" + key).classList.add("active");
+        $("loop-status-" + key).textContent = `LOOP ${formatTime(deck.loop.start)} – ${formatTime(deck.loop.start + deck.loop.duration)}`;
+      }
+      function applySkin(skin) {
+        document.documentElement.dataset.skin = skin === "logo" ? "" : skin;
+        localStorage.setItem("sirKevinSkin", skin);
+      }
+      function applyLayout(layout) {
+        const decksNode = document.querySelector(".decks");
+        decksNode.classList.remove("layout-duo", "layout-stacked", "layout-focus");
+        if (layout === "focus") {
+          decksNode.classList.add("layout-focus");
+          document.querySelectorAll(".deck").forEach((deck) => deck.classList.toggle("focused", deck.dataset.deck === $("focusDeck").value));
+        } else if (layout !== "three") {
+          decksNode.classList.add("layout-" + layout);
+          document.querySelectorAll(".deck").forEach((deck) => deck.classList.remove("focused"));
+        }
+        $("focusDeckRow").hidden = layout !== "focus";
+        localStorage.setItem("sirKevinLayout", layout);
+      }
+      function setActiveDeck(key) {
+        activeDeck = key;
+        if ($("layoutSelect").value === "focus") {
+          $("focusDeck").value = key;
+          applyLayout("focus");
+        }
+      }
+      function midiStatus(text) { $("midiStatus").textContent = text; }
+      function refreshMidiInputs(access) {
+        const select = $("midiInput");
+        const previous = select.value;
+        select.replaceChildren();
+        const inputs = Array.from(access.inputs.values());
+        if (!inputs.length) {
+          const option = document.createElement("option"); option.value = ""; option.textContent = "No controller connected"; select.append(option);
+          midiStatus("No MIDI input found. Connect a controller and press Refresh/Connect.");
+          return;
+        }
+        inputs.forEach((input) => {
+          const option = document.createElement("option"); option.value = input.id; option.textContent = input.name || "MIDI input";
+          select.append(option);
+        });
+        select.value = inputs.some((input) => input.id === previous) ? previous : inputs[0].id;
+        select.dispatchEvent(new Event("change"));
+      }
+      function bindMidiInput(input) {
+        for (const item of window.midiAccess.inputs.values()) item.onmidimessage = null;
+        if (!input) return;
+        input.onmidimessage = (event) => {
+          const [status, note, velocity] = event.data;
+          if ((status & 0xf0) !== 0x90 || velocity === 0) return;
+          const playKey = { 60: "a", 61: "b", 62: "c", 63: "d" }[note];
+          const cueKey = { 48: "a", 49: "b", 50: "c", 51: "d" }[note];
+          if (playKey) $("play-" + playKey).click();
+          else if (cueKey) $("cue-" + cueKey).click();
+          midiStatus(`MIDI: note ${note} received from ${input.name || "controller"}.`);
+        };
+        midiStatus(`Connected: ${input.name || "MIDI controller"}.`);
+      }
+      async function connectMidi() {
+        if (!navigator.requestMIDIAccess) {
+          midiStatus("Web MIDI is unavailable here. Try the installed desktop app with a Chromium-compatible MIDI device.");
+          return;
+        }
+        try {
+          window.midiAccess = await navigator.requestMIDIAccess();
+          refreshMidiInputs(window.midiAccess);
+          window.midiAccess.onstatechange = () => refreshMidiInputs(window.midiAccess);
+        } catch (error) {
+          midiStatus(`Controller access failed: ${error.message}`);
+        }
+      }
+      async function refreshAudioOutputs() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+          $("audioOutputStatus").textContent = "Audio device selection is unavailable in this environment.";
+          return;
+        }
+        try {
+          const outputs = (await navigator.mediaDevices.enumerateDevices()).filter((device) => device.kind === "audiooutput");
+          ["audioOutput", "headphoneOutput"].forEach((id) => {
+            const select = $(id);
+            const selected = select.value;
+            select.replaceChildren(new Option("System default output", ""));
+            outputs.forEach((device, index) => {
+              select.append(new Option(device.label || `Audio output ${index + 1}`, device.deviceId));
+            });
+            if (outputs.some((device) => device.deviceId === selected)) select.value = selected;
+          });
+          $("audioOutputStatus").textContent = outputs.length ? `${outputs.length} output device(s) found.` : "No audio outputs reported; using system default.";
+        } catch (error) {
+          $("audioOutputStatus").textContent = `Could not list audio devices: ${error.message}`;
+        }
+      }
+      async function setAudioOutput(deviceId) {
+        try {
+          await audioEngine.setMasterOutput(deviceId);
+          $("audioOutputStatus").textContent = deviceId
+            ? "Master mix routed to the selected output."
+            : "Master mix routed to the system default output.";
+        } catch (error) {
+          $("audioOutputStatus").textContent = `Could not select the master output: ${error.message}`;
+        }
+      }
+      async function setHeadphoneOutput(deviceId) {
+        try {
+          await audioEngine.setHeadphoneOutput(deviceId);
+          $("audioOutputStatus").textContent = deviceId
+            ? "Headphone cue routed to the selected output."
+            : "Headphone cue routed to the system default output.";
+        } catch (error) {
+          $("audioOutputStatus").textContent = `Could not select the headphone output: ${error.message}`;
+        }
+      }
+      function updateOnlineSearchLinks() {
+        const query = $("onlineQuery").value.trim();
+        const encoded = encodeURIComponent(query);
+        $("providerLinks").querySelector('[data-provider="soundcloud"]').href = `https://soundcloud.com/search?q=${encoded}`;
+        $("providerLinks").querySelector('[data-provider="youtube"]').href = `https://www.youtube.com/results?search_query=${encoded}`;
+        $("providerLinks").querySelector('[data-provider="audius"]').href = `https://audius.co/search/${encoded}`;
+      }
+      function updateMasterFx() {
+        const mode = $("masterFx").value;
+        const amount = Number($("masterFxAmount").value) / 100;
+        audioEngine.setMasterEffect(mode, amount);
+      }
+      function setBpm(key, value) {
+        const bpm = Number(value);
+        const valid = Number.isFinite(bpm) && bpm >= 40 && bpm <= 240;
+        const track = decks[key].track;
+        if (track) {
+          track.manualBpm = valid;
+          track.bpm = valid ? bpm.toFixed(1) : track.detectedBpm;
+          renderTracks();
+        }
+        const linkedDecks = track
+          ? ["a", "b", "c", "d"].filter((deckKey) => decks[deckKey].track === track)
+          : [key];
+        linkedDecks.forEach((deckKey) => {
+          const displayedBpm = track ? Number(track.bpm) : valid ? bpm : NaN;
+          $("bpm-" + deckKey).textContent = Number.isFinite(displayedBpm) ? displayedBpm.toFixed(1) : "--";
+          const overviewBpm = $("overviewBpm" + deckKey.toUpperCase());
+          if (overviewBpm) overviewBpm.textContent = Number.isFinite(displayedBpm) ? displayedBpm.toFixed(1) + " BPM" : "-- BPM";
+          if (track && document.activeElement !== $("bpm-input-" + deckKey)) $("bpm-input-" + deckKey).value = track.bpm || "";
+          if (track?.waveformPeaks) {
+            $("wave-status-" + deckKey).textContent = `DECODED WAVEFORM · BPM ${track.bpm || "NOT DETECTED"} · KEY ${track.key}`;
+          }
+          drawWave(deckKey);
+        });
+        return valid ? bpm : null;
+      }
+      function syncDeck(key) {
+        const targetKey = ["a", "b", "c", "d"].find((candidate) => candidate !== key
+          && decks[candidate].track && Number($("bpm-input-" + candidate).value) >= 40
+          && Number($("bpm-input-" + candidate).value) <= 240);
+        if (!targetKey) {
+          window.alert("Load another track and set its BPM before syncing.");
+          return;
+        }
+        const bpm = Number($("bpm-input-" + key).value);
+        const targetBpm = Number($("bpm-input-" + targetKey).value);
+        if (!(bpm >= 40 && bpm <= 240 && targetBpm >= 40 && targetBpm <= 240)) {
+          window.alert("Set a BPM between 40 and 240 on both decks before syncing.");
+          return;
+        }
+        const rate = clamp(targetBpm / bpm, 0.92, 1.08);
+        decks[key].audio.playbackRate = rate;
+        const pitch = (rate - 1) * 100;
+        $("pitch-" + key).value = pitch;
+        $("pitch-out-" + key).textContent = (pitch > 0 ? "+" : "") + pitch.toFixed(1) + "%";
+      }
+      function buildPerformancePads(key) {
+        const cueContainer = $("hotcues-" + key);
+        decks[key].hotCues.forEach((_, index) => {
+          const button = document.createElement("button");
+          button.type = "button"; button.className = "pad"; button.textContent = String(index + 1);
+          button.title = "Click to set or recall; double-click to clear";
+          button.addEventListener("click", () => {
+            const deck = decks[key];
+            if (!deck.track) return;
+            if (deck.hotCues[index] === null) {
+              deck.hotCues[index] = deck.audio.currentTime;
+              button.classList.add("active");
+            } else {
+              deck.audio.currentTime = deck.hotCues[index];
+            }
+          });
+          button.addEventListener("dblclick", (event) => {
+            event.preventDefault();
+            decks[key].hotCues[index] = null;
+            button.classList.remove("active");
+          });
+          cueContainer.append(button);
+        });
+        const loopContainer = $("loops-" + key);
+        ["½", "1", "2", "4", "8", "16"].forEach((beats) => {
+          const button = document.createElement("button");
+          button.type = "button"; button.className = "pad"; button.textContent = beats;
+          button.addEventListener("click", () => {
+            const deck = decks[key];
+            if (deck.loop && deck.loop.mode === "beat" && deck.loop.beats === beats) {
+              clearLoop(key);
+              return;
+            }
+            const masterKey = $("loopMaster").value;
+            const bpm = Number($("bpm-input-" + masterKey).value) || Number($("bpm-input-" + key).value);
+            if (!deck.track || !(bpm >= 40 && bpm <= 240)) {
+              window.alert("Load a track and set its BPM, or set a BPM on the selected loop master.");
+              return;
+            }
+            clearLoop(key);
+            button.classList.add("active");
+            deck.loop = {
+              start: deck.audio.currentTime,
+              duration: (beats === "½" ? 0.5 : Number(beats)) * 60 / bpm,
+              mode: "beat",
+              beats
+            };
+            $("loop-status-" + key).textContent = `${beats} beat loop · ${bpm.toFixed(1)} BPM`;
+          });
+          loopContainer.append(button);
+        });
+        buildStemPads(key);
+      }
+      function parseTrack(file) {
+        const name = basename(file.name);
+        const clean = name.replace(/[_-]+/g, " ").trim();
+        const parts = clean.split(/\s+-\s+/);
+        return {
+          file,
+          name: parts.length > 1 ? parts.slice(1).join(" - ") : clean,
+          artist: parts.length > 1 ? parts[0] : "Local audio",
+          bpm: null,
+          detectedBpm: null,
+          manualBpm: false,
+          key: "—",
+          beatOffsetSeconds: 0,
+          duration: null,
+          url: URL.createObjectURL(file)
+        };
+      }
+      async function loadTrack(key, track) {
+        if (!track) return;
+        const deck = decks[key];
+        deck.audio.pause();
+        deck.track = track;
+        deck.cue = 0;
+        clearLoop(key);
+        deck.hotCues.fill(null);
+        $("hotcues-" + key).querySelectorAll(".pad").forEach((pad) => pad.classList.remove("active"));
+        $("loops-" + key).querySelectorAll(".pad").forEach((pad) => pad.classList.remove("active"));
+        $("loop-status-" + key).textContent = "Loop off";
+        $("jog-" + key).classList.remove("spinning");
+        deck.audio.src = track.url;
+        deck.audio.load();
+        $("title-" + key).textContent = track.name;
+        const overviewTitle = $("overviewTitle" + key.toUpperCase());
+        if (overviewTitle) overviewTitle.textContent = track.name;
+        $("artist-" + key).textContent = track.artist;
+        $("loaded-" + key).textContent = track.file.name;
+        $("bpm-" + key).textContent = track.bpm || "--";
+        $("key-" + key).textContent = track.key;
+        $("bpm-input-" + key).value = track.bpm || "";
+        $("art-" + key).textContent = track.artist.slice(0, 1).toUpperCase();
+        $("play-" + key).textContent = "▶ PLAY";
+        $("play-" + key).classList.remove("playing");
+        $("seek-" + key).value = "0";
+        $("seek-" + key).disabled = true;
+        $("wave-" + key).setAttribute("aria-disabled", "true");
+        await new Promise((resolve) => {
+          if (deck.audio.readyState >= 1) { resolve(); return; }
+          deck.audio.addEventListener("loadedmetadata", resolve, { once: true });
+          deck.audio.addEventListener("error", () => resolve(), { once: true });
+        });
+        track.duration = deck.audio.duration;
+        $("duration-" + key).textContent = formatTime(deck.audio.duration);
+        const canSeek = Number.isFinite(deck.audio.duration) && deck.audio.duration > 0;
+        $("seek-" + key).disabled = !canSeek;
+        $("wave-" + key).setAttribute("aria-disabled", String(!canSeek));
+        drawWave(key);
+        drawOverview();
+        renderTracks();
+        $("wave-status-" + key).textContent = canSeek ? "ANALYZING TRACK AUDIO…" : "WAVEFORM UNAVAILABLE · TRACK DURATION UNKNOWN";
+        if (canSeek) void analyzeTrackWaveform(key, track);
+      }
+      function addFiles(files) {
+        Array.from(files).forEach((file) => {
+          if (!file.type.startsWith("audio/")) return;
+          const track = parseTrack(file);
+          tracks.push(track);
+          const probe = new Audio();
+          probe.src = track.url;
+          probe.addEventListener("loadedmetadata", () => {
+            track.duration = probe.duration;
+            renderTracks();
+          }, { once: true });
+        });
+        renderTracks();
+      }
+      async function analyzeTrackWaveform(key, track) {
+        if (!track.analysisPromise) {
+          track.analysisPromise = audioEngine.analyzeWaveform(track.file);
+        }
+        try {
+          const analysis = await track.analysisPromise;
+          track.waveformPeaks = analysis.peaks;
+          track.detectedBpm = analysis.bpm ? analysis.bpm.toFixed(1) : null;
+          track.beatOffsetSeconds = analysis.beatOffsetSeconds;
+          track.key = analysis.key || "—";
+          track.bpm = track.manualBpm ? track.bpm : track.detectedBpm;
+          const matchingDecks = ["a", "b", "c", "d"].filter((deckKey) => decks[deckKey].track === track);
+          matchingDecks.forEach((deckKey) => {
+            $("wave-status-" + deckKey).textContent = [
+              "DECODED WAVEFORM",
+              track.detectedBpm ? `BPM ${track.detectedBpm}` : "BPM NOT DETECTED",
+              track.key !== "—" ? `KEY ${track.key}` : "KEY NOT DETECTED"
+            ].join(" · ");
+            $("wave-" + deckKey).setAttribute("aria-label", `Deck ${deckKey.toUpperCase()} decoded audio waveform with beat grid`);
+            $("bpm-" + deckKey).textContent = track.bpm || "--";
+            $("key-" + deckKey).textContent = track.key;
+            if (document.activeElement !== $("bpm-input-" + deckKey)) $("bpm-input-" + deckKey).value = track.bpm || "";
+            const overviewBpm = $("overviewBpm" + deckKey.toUpperCase());
+            if (overviewBpm) overviewBpm.textContent = track.bpm ? `${track.bpm} BPM` : "-- BPM";
+            drawWave(deckKey);
+          });
+          if (decks[key].track !== track) return;
+          renderTracks();
+          drawOverview();
+        } catch (error) {
+          if (decks[key].track !== track) return;
+          const message = error instanceof Error ? error.message : "Audio decoding failed.";
+          $("wave-status-" + key).textContent = `WAVEFORM UNAVAILABLE · ${message}`;
+          $("wave-" + key).setAttribute("aria-label", `Deck ${key.toUpperCase()} waveform unavailable`);
+          console.error(`Could not analyze Deck ${key.toUpperCase()} waveform:`, error);
+        }
+      }
+      function renderTracks() {
+        const query = $("search").value.trim().toLowerCase();
+        const matches = tracks.filter((track) => `${track.name} ${track.artist}`.toLowerCase().includes(query));
+        const tbody = $("trackRows");
+        tbody.replaceChildren();
+        if (!matches.length) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.colSpan = 5;
+          cell.className = "empty";
+          cell.textContent = tracks.length ? "No tracks match your search." : "Add audio files from your device to build your library.";
+          row.append(cell); tbody.append(row); return;
+        }
+        matches.forEach((track) => {
+          const row = document.createElement("tr");
+          const title = document.createElement("td"); title.textContent = `${track.name}  ·  ${track.artist}`;
+          const bpm = document.createElement("td"); bpm.textContent = track.bpm || "—";
+          const key = document.createElement("td"); key.textContent = track.key;
+          const duration = document.createElement("td"); duration.textContent = formatTime(track.duration);
+          const action = document.createElement("td");
+          ["a", "b", "c", "d"].forEach((key, index) => {
+            if (index) action.append(document.createTextNode(" / "));
+            const load = document.createElement("button");
+            load.type = "button";
+            load.className = "row-load";
+            load.textContent = key.toUpperCase();
+            load.setAttribute("aria-label", `Load ${track.name} to deck ${key.toUpperCase()}`);
+            load.addEventListener("click", (event) => {
+              event.stopPropagation();
+              activeDeck = key;
+              loadTrack(key, track);
+            });
+            action.append(load);
+          });
+          row.addEventListener("click", () => { loadTrack(activeDeck, track); });
+          row.append(title, bpm, key, duration, action); tbody.append(row);
+        });
+      }
+      function drawWave(key) {
+        const canvas = $("wave-" + key);
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width) return;
+        const ratio = window.devicePixelRatio || 1;
+        const pixelWidth = Math.round(rect.width * ratio);
+        const pixelHeight = Math.round(rect.height * ratio);
+        if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+          canvas.width = pixelWidth;
+          canvas.height = pixelHeight;
+        }
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const width = rect.width, height = rect.height;
+        ctx.fillStyle = "#09111a"; ctx.fillRect(0, 0, width, height);
+        ctx.strokeStyle = "#182432"; ctx.lineWidth = 1;
+        for (let y = 16; y < height; y += 15) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke(); }
+        const track = decks[key].track;
+        const peaks = track?.waveformPeaks;
+        const view = waveformView(key);
+        const bars = Math.max(1, Math.floor(width / 3));
+        const hue = { a: "#41d9e8", b: "#9f7cff", c: "#ffc66d", d: "#f27e9d" }[key];
+        for (let i = 0; i < bars; i++) {
+          const sampleTime = view.start + (i + 0.5) / bars * view.duration;
+          const peakIndex = peaks && track?.duration > 0
+            ? Math.min(peaks?.length - 1, Math.floor(sampleTime / track.duration * peaks.length))
+            : -1;
+          const envelope = peaks && peakIndex >= 0 ? peaks[peakIndex] : 0;
+          const barHeight = peaks ? Math.max(2, envelope * (height * 0.78)) : 2;
+          ctx.fillStyle = sampleTime < decks[key].audio.currentTime ? "#e4faff" : hue;
+          ctx.globalAlpha = peaks ? 0.5 + envelope * 0.5 : 0.25;
+          ctx.fillRect(i * width / bars, (height - barHeight) / 2, Math.max(1, width / bars - 1), barHeight);
+        }
+        ctx.globalAlpha = 1;
+        const bpm = Number(track?.bpm);
+        if (bpm >= 40 && bpm <= 240) {
+          const beatDuration = 60 / bpm;
+          const firstBeat = Math.ceil((view.start - (track.beatOffsetSeconds || 0)) / beatDuration);
+          const lastBeat = Math.floor((view.start + view.duration - (track.beatOffsetSeconds || 0)) / beatDuration);
+          for (let beat = firstBeat; beat <= lastBeat; beat++) {
+            const beatTime = (track.beatOffsetSeconds || 0) + beat * beatDuration;
+            const x = width * (beatTime - view.start) / view.duration;
+            ctx.strokeStyle = beat % 4 === 0 ? "#ffffff68" : "#ffffff28";
+            ctx.lineWidth = beat % 4 === 0 ? 1.25 : 1;
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+          }
+        }
+        const duration = decks[key].audio.duration;
+        if (Number.isFinite(duration) && duration > 0) {
+          const loopStart = decks[key].waveformLoopIn ?? decks[key].loop?.start;
+          const loopEnd = decks[key].loop
+            ? decks[key].loop.start + decks[key].loop.duration
+            : null;
+          if (loopStart !== undefined && loopStart !== null && loopEnd !== null) {
+            const left = width * (loopStart - view.start) / view.duration;
+            const right = width * (loopEnd - view.start) / view.duration;
+            if (right >= 0 && left <= width) {
+              ctx.fillStyle = "#ffffff20";
+              ctx.fillRect(Math.max(0, left), 0, Math.max(1, Math.min(width, right) - Math.max(0, left)), height);
+              ctx.fillStyle = hue;
+              if (left >= 0 && left <= width) ctx.fillRect(left, 0, 2, height);
+              if (right >= 0 && right <= width) ctx.fillRect(right, 0, 2, height);
+            }
+          } else if (loopStart !== undefined && loopStart !== null) {
+            const x = width * (loopStart - view.start) / view.duration;
+            if (x >= 0 && x <= width) {
+              ctx.fillStyle = hue;
+              ctx.fillRect(x, 0, 2, height);
+            }
+          }
+        }
+        const position = width * (decks[key].audio.currentTime - view.start) / view.duration;
+        ctx.fillStyle = "#ffffff";
+        if (position >= 0 && position <= width) ctx.fillRect(position, 0, 2, height);
+      }
+      function waveformView(key) {
+        const deck = decks[key];
+        const duration = Number.isFinite(deck.audio.duration) && deck.audio.duration > 0
+          ? deck.audio.duration
+          : deck.track?.duration || 0;
+        const bpm = Number(deck.track?.bpm);
+        const viewDuration = duration > 0
+          ? Math.min(duration, clamp(bpm >= 40 && bpm <= 240 ? 16 * 60 / bpm : 8, 4, 12))
+          : 8;
+        const maxStart = Math.max(0, duration - viewDuration);
+        const start = clamp(deck.audio.currentTime - viewDuration / 2, 0, maxStart);
+        return { start, duration: viewDuration };
+      }
+      function seekDeck(key, fraction) {
+        const deck = decks[key];
+        const duration = deck.audio.duration;
+        if (!deck.track || !Number.isFinite(duration) || duration <= 0) return;
+        const position = clamp(fraction, 0, 1) * duration;
+        try {
+          deck.audio.currentTime = position;
+          $("seek-" + key).value = String(Math.round(position / duration * 1000));
+          $("elapsed-" + key).textContent = formatTime(position);
+          drawWave(key);
+        } catch (error) {
+          console.error(`Could not seek Deck ${key.toUpperCase()}:`, error);
+        }
+      }
+      function drawOverview() {
+        const canvas = $("overview");
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width) return;
+        const ratio = window.devicePixelRatio || 1;
+        const pixelWidth = Math.round(rect.width * ratio);
+        const pixelHeight = Math.round(rect.height * ratio);
+        if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+          canvas.width = pixelWidth;
+          canvas.height = pixelHeight;
+        }
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        ctx.fillStyle = "#09111a";
+        ctx.fillRect(0, 0, rect.width, rect.height);
+        const keys = ["a", "b", "c", "d"];
+        const laneHeight = rect.height / keys.length;
+        const colors = { a: "#41d9e8", b: "#9f7cff", c: "#ffc66d", d: "#f27e9d" };
+        keys.forEach((key, lane) => {
+          const deck = decks[key];
+          const peaks = deck.track?.waveformPeaks;
+          const top = lane * laneHeight;
+          ctx.strokeStyle = "#263244";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(0, top + laneHeight);
+          ctx.lineTo(rect.width, top + laneHeight);
+          ctx.stroke();
+          if (!peaks) return;
+
+          const bars = Math.min(peaks.length, Math.max(1, Math.floor(rect.width / 2)));
+          for (let i = 0; i < bars; i++) {
+            const peak = peaks[Math.floor(i / bars * peaks.length)];
+            const amplitude = Math.max(1, peak * laneHeight * 0.42);
+            const x = i * rect.width / bars;
+            ctx.fillStyle = colors[key];
+            ctx.globalAlpha = 0.55 + peak * 0.45;
+            ctx.fillRect(x, top + (laneHeight - amplitude * 2) / 2, Math.max(1, rect.width / bars - 1), amplitude * 2);
+          }
+          const duration = deck.audio.duration;
+          if (Number.isFinite(duration) && duration > 0) {
+            const position = rect.width * clamp(deck.audio.currentTime / duration, 0, 1);
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(position, top, 1, laneHeight);
+          }
+        });
+        ctx.globalAlpha = 1;
+      }
+
+      function refreshVoices() {
+        const voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+        const gender = $("voiceGender").value;
+        const preferred = voices.filter((voice) => new RegExp(gender === "male" ? "\\bmale\\b|\\bman\\b|david|james|daniel|alex" : "female|woman|samantha|victoria|zira|karen", "i").test(voice.name));
+        const choices = preferred.length ? preferred : voices;
+        const select = $("voiceChoice");
+        const previous = select.value;
+        select.replaceChildren();
+        choices.forEach((voice) => {
+          const option = document.createElement("option");
+          option.value = voice.name; option.textContent = voice.name + (voice.lang ? ` (${voice.lang})` : "");
+          select.append(option);
+        });
+        if (choices.some((voice) => voice.name === previous)) select.value = previous;
+        $("voiceStatus").textContent = voices.length
+          ? (preferred.length ? `${preferred.length} ${gender}-style voice(s) available on this device.` : `No clearly labeled ${gender} voice found; choose an available device voice.`)
+          : "No speech voices are available in this browser/device.";
+      }
+      function speakShoutout() {
+        if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+          $("voiceStatus").textContent = "Speech synthesis is not supported by this browser.";
+          return;
+        }
+        const text = $("shoutText").value.trim();
+        if (!text) { $("voiceStatus").textContent = "Enter a shout-out before pressing Speak."; return; }
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voice = window.speechSynthesis.getVoices().find((item) => item.name === $("voiceChoice").value);
+        if (voice) { utterance.voice = voice; utterance.lang = voice.lang; }
+        utterance.onstart = () => { $("voiceStatus").textContent = `Speaking with ${voice ? voice.name : "the device default voice"}.`; };
+        utterance.onerror = (event) => { $("voiceStatus").textContent = `Speech could not be played: ${event.error}.`; };
+        utterance.onend = () => { $("voiceStatus").textContent = "Shout-out finished."; };
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      }
+      async function toggleRecording() {
+        const button = $("recordButton");
+        if (recorder && recorder.state === "recording") { recorder.stop(); return; }
+        if (!window.MediaRecorder) { window.alert("Audio recording is not supported by this browser."); return; }
+        try {
+          ensureAudioGraph("a"); ensureAudioGraph("b"); ensureAudioGraph("c");
+          const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus") ? "audio/webm;codecs=opus" : "";
+          recorder = new MediaRecorder(audioEngine.recordDestination.stream, mimeType ? { mimeType } : undefined);
+          recordedChunks = [];
+          recorder.addEventListener("dataavailable", (event) => { if (event.data.size) recordedChunks.push(event.data); });
+          recorder.addEventListener("stop", () => {
+            const blob = new Blob(recordedChunks, { type: recorder.mimeType || "audio/webm" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url; link.download = "sir-kevin-mix.webm"; link.click();
+            window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+            button.classList.remove("recording"); button.textContent = "● REC";
+          });
+          recorder.start();
+          button.classList.add("recording"); button.textContent = "■ STOP";
+        } catch (error) {
+          window.alert(error.message || "Unable to start mix recording.");
+        }
+      }
+
+      ["a", "b", "c", "d"].forEach((key) => {
+        const deck = decks[key];
+        buildPerformancePads(key);
+        const vinylButton = $("vinyl-" + key);
+        const slipButton = $("slip-" + key);
+        vinylButton.addEventListener("click", () => {
+          deck.vinyl = !deck.vinyl;
+          vinylButton.classList.toggle("active", deck.vinyl);
+          vinylButton.setAttribute("aria-pressed", String(deck.vinyl));
+        });
+        slipButton.addEventListener("click", () => {
+          deck.slip = !deck.slip;
+          slipButton.classList.toggle("active", deck.slip);
+          slipButton.setAttribute("aria-pressed", String(deck.slip));
+        });
+        $("loop-in-" + key).addEventListener("click", () => setLoopInOut(key, "in"));
+        $("loop-out-" + key).addEventListener("click", () => setLoopInOut(key, "out"));
+        const jog = $("jog-" + key);
+        const jogAngle = (event) => {
+          const bounds = jog.getBoundingClientRect();
+          return Math.atan2(event.clientY - (bounds.top + bounds.height / 2), event.clientX - (bounds.left + bounds.width / 2));
+        };
+        jog.addEventListener("pointerdown", (event) => {
+          jog.setPointerCapture(event.pointerId);
+          deck.jogSession = {
+            previousAngle: jogAngle(event),
+            startTime: deck.audio.currentTime,
+            startedAt: performance.now(),
+            wasPlaying: !deck.audio.paused,
+            vinyl: deck.vinyl,
+            slip: deck.slip
+          };
+          if (deck.vinyl && !deck.audio.paused) deck.audio.pause();
+          setActiveDeck(key);
+        });
+        jog.addEventListener("pointermove", (event) => {
+          if (!deck.jogSession || !deck.track) return;
+          const nextAngle = jogAngle(event);
+          let delta = nextAngle - deck.jogSession.previousAngle;
+          if (delta > Math.PI) delta -= Math.PI * 2;
+          if (delta < -Math.PI) delta += Math.PI * 2;
+          deck.jogSession.previousAngle = nextAngle;
+          const duration = Number.isFinite(deck.audio.duration) ? deck.audio.duration : 0;
+          deck.audio.currentTime = clamp(deck.audio.currentTime + (delta / (Math.PI * 2)) * 2.4, 0, duration);
+        });
+        const releaseJog = async () => {
+          const session = deck.jogSession;
+          deck.jogSession = null;
+          if (!session || !deck.track) return;
+          if (session.slip && session.wasPlaying) {
+            const duration = Number.isFinite(deck.audio.duration) ? deck.audio.duration : 0;
+            deck.audio.currentTime = clamp(session.startTime + ((performance.now() - session.startedAt) / 1000) * deck.audio.playbackRate, 0, duration);
+          }
+          if (session.wasPlaying && deck.audio.paused) {
+            try {
+              await deck.audio.play();
+              $("play-" + key).textContent = "Ⅱ PAUSE";
+              $("play-" + key).classList.add("playing");
+              jog.classList.add("spinning");
+            } catch (error) {
+              window.alert(error.message || "Unable to resume this deck after scratching.");
+            }
+          }
+        };
+        jog.addEventListener("pointerup", releaseJog);
+        jog.addEventListener("pointercancel", releaseJog);
+        $("load-" + key).addEventListener("click", () => { setActiveDeck(key); $("file-" + key).click(); });
+        $("file-" + key).addEventListener("change", (event) => {
+          const file = event.target.files[0];
+          if (file) { const track = parseTrack(file); tracks.push(track); loadTrack(key, track); }
+          event.target.value = "";
+        });
+        $("seek-" + key).addEventListener("input", (event) => {
+          seekDeck(key, Number(event.target.value) / 1000);
+        });
+        $("wave-" + key).addEventListener("click", (event) => {
+          const bounds = event.currentTarget.getBoundingClientRect();
+          if (!bounds.width) return;
+          const fraction = (event.clientX - bounds.left) / bounds.width;
+          const view = waveformView(key);
+          const position = view.start + clamp(fraction, 0, 1) * view.duration;
+          if (decks[key].waveformLoopMode) setWaveformLoopPoint(key, fraction);
+          else seekDeck(key, position / (decks[key].audio.duration || 1));
+        });
+        $("wave-loop-" + key).addEventListener("click", (event) => {
+          const button = event.currentTarget;
+          if (!deck.track) {
+            $("loop-status-" + key).textContent = "Load a track before selecting a waveform loop";
+            return;
+          }
+          deck.waveformLoopMode = !deck.waveformLoopMode;
+          deck.waveformLoopIn = null;
+          button.classList.toggle("active", deck.waveformLoopMode);
+          button.setAttribute("aria-pressed", String(deck.waveformLoopMode));
+          $("loop-status-" + key).textContent = deck.waveformLoopMode
+            ? "WAVE LOOP: click waveform for IN, then OUT"
+            : deck.loop ? `WAVE LOOP ${formatTime(deck.loop.start)} – ${formatTime(deck.loop.start + deck.loop.duration)}` : "Loop off";
+          drawWave(key);
+        });
+        $("play-" + key).addEventListener("click", async () => {
+          setActiveDeck(key);
+          if (!deck.track) { $("file-" + key).click(); return; }
+          try {
+            ensureAudioGraph(key);
+            if ($("audioOutput").value) await setAudioOutput($("audioOutput").value);
+            if (deck.audio.paused) { await deck.audio.play(); $("play-" + key).textContent = "Ⅱ PAUSE"; $("play-" + key).classList.add("playing"); jog.classList.add("spinning"); }
+            else { deck.audio.pause(); $("play-" + key).textContent = "▶ PLAY"; $("play-" + key).classList.remove("playing"); jog.classList.remove("spinning"); }
+          } catch (error) { window.alert(error.message || "Unable to play this audio file."); }
+        });
+        $("cue-" + key).addEventListener("click", () => {
+          setActiveDeck(key);
+          if (!deck.track) return;
+          if (!deck.audio.paused) { deck.cue = deck.audio.currentTime; return; }
+          deck.audio.currentTime = deck.cue || 0;
+        });
+        $("repeat-" + key).addEventListener("click", () => {
+          deck.repeatTrack = !deck.repeatTrack;
+          const button = $("repeat-" + key);
+          button.classList.toggle("active", deck.repeatTrack);
+          button.setAttribute("aria-pressed", String(deck.repeatTrack));
+          button.title = deck.repeatTrack
+            ? "Repeat this track from the beginning when it ends"
+            : "Play this track once";
+        });
+        deck.audio.addEventListener("ended", async () => {
+          if (deck.repeatTrack && deck.track) {
+            try {
+              deck.audio.currentTime = 0;
+              await deck.audio.play();
+              $("play-" + key).textContent = "Ⅱ PAUSE";
+              $("play-" + key).classList.add("playing");
+              jog.classList.add("spinning");
+              return;
+            } catch (error) {
+              $("play-" + key).textContent = "▶ PLAY";
+              $("play-" + key).classList.remove("playing");
+              jog.classList.remove("spinning");
+              window.alert(error.message || `Unable to repeat Deck ${key.toUpperCase()}.`);
+            }
+          }
+          $("play-" + key).textContent = "▶ PLAY"; $("play-" + key).classList.remove("playing"); jog.classList.remove("spinning");
+        });
+        deck.audio.addEventListener("timeupdate", () => {
+          if (deck.loop && deck.audio.currentTime >= deck.loop.start + deck.loop.duration) {
+            deck.audio.currentTime = deck.loop.start;
+          }
+          $("elapsed-" + key).textContent = formatTime(deck.audio.currentTime);
+          const duration = deck.audio.duration;
+          if (Number.isFinite(duration) && duration > 0 && document.activeElement !== $("seek-" + key)) {
+            $("seek-" + key).value = String(Math.round(deck.audio.currentTime / duration * 1000));
+          }
+          drawWave(key);
+          drawOverview();
+        });
+        deck.audio.addEventListener("loadedmetadata", () => {
+          const canSeek = Number.isFinite(deck.audio.duration) && deck.audio.duration > 0;
+          $("duration-" + key).textContent = formatTime(deck.audio.duration);
+          $("seek-" + key).disabled = !canSeek;
+          $("wave-" + key).setAttribute("aria-disabled", String(!canSeek));
+        });
+        $("volume-" + key).addEventListener("input", (event) => {
+          $("volume-out-" + key).textContent = event.target.value + "%";
+          updateAudioGain(key);
+        });
+        $("fader-" + key).addEventListener("input", (event) => { event.target.title = event.target.value + "%"; updateAudioGain(key); });
+        $("gain-" + key).addEventListener("input", (event) => {
+          $("gain-out-" + key).textContent = event.target.value + "%";
+          updateAudioGain(key);
+        });
+        ["hi", "mid", "low"].forEach((band) => $(band + "-" + key).addEventListener("input", (event) => {
+          $(band + "-out-" + key).textContent = Number(event.target.value) > 0 ? "+" + event.target.value : event.target.value;
+          updateEQ(key);
+        }));
+        $("pitch-" + key).addEventListener("input", (event) => {
+          const pitch = Number(event.target.value);
+          deck.audio.playbackRate = 1 + pitch / 100;
+          $("pitch-out-" + key).textContent = (pitch > 0 ? "+" : "") + pitch.toFixed(1) + "%";
+        });
+        $("bpm-input-" + key).addEventListener("input", (event) => {
+          setBpm(key, event.target.value);
+        });
+        $("bpm-input-" + key).addEventListener("change", (event) => {
+          if (!event.target.value && deck.track?.bpm) event.target.value = deck.track.bpm;
+        });
+        $("sync-" + key).addEventListener("click", () => syncDeck(key));
+      });
+      $("crossfader").addEventListener("input", updateAllAudioGains);
+      ["a", "b", "c", "d"].forEach((key) => $("headphone-" + key).addEventListener("change", async (event) => {
+        try {
+          if (event.target.checked) {
+            ["a", "b", "c", "d"].filter((other) => other !== key).forEach((other) => {
+              $("headphone-" + other).checked = false;
+              audioEngine.setCue(other, false);
+            });
+            ensureAudioGraph(key);
+          }
+          audioEngine.setCue(key, event.target.checked);
+          if (event.target.checked && $("headphoneOutput").value) {
+            await setHeadphoneOutput($("headphoneOutput").value);
+          }
+        } catch (error) {
+          event.target.checked = false;
+          audioEngine.setCue(key, false);
+          $("audioOutputStatus").textContent = `Headphone cue could not start: ${error.message}`;
+        }
+      }));
+      $("search").addEventListener("input", renderTracks);
+      $("addTracks").addEventListener("click", () => $("file-library").click());
+      $("file-library").addEventListener("change", (event) => { addFiles(event.target.files); event.target.value = ""; });
+      $("libraryJump").addEventListener("click", () => $("library").scrollIntoView({ behavior: "smooth" }));
+      $("studioJump").addEventListener("click", () => {
+        $("studioTools").open = true;
+        $("studioTools").scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      $("recordButton").addEventListener("click", toggleRecording);
+      $("speakButton").addEventListener("click", speakShoutout);
+      $("stopSpeakButton").addEventListener("click", () => {
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        $("voiceStatus").textContent = "Shout-out stopped.";
+      });
+      $("voiceGender").addEventListener("change", refreshVoices);
+      $("effectDeck").addEventListener("change", () => { ["a", "b", "c", "d"].forEach(updateEffect); });
+      $("effectMode").addEventListener("change", () => { ["a", "b", "c", "d"].forEach(updateEffect); });
+      $("effectAmount").addEventListener("input", () => { ["a", "b", "c", "d"].forEach(updateEffect); });
+      $("masterFx").addEventListener("change", updateMasterFx);
+      $("masterFxAmount").addEventListener("input", updateMasterFx);
+      $("masterVolume").addEventListener("input", (event) => {
+        audioEngine.setMasterVolume(Number(event.target.value) / 100);
+      });
+      $("headphoneVolume").addEventListener("input", (event) => {
+        const value = Number(event.target.value);
+        $("headphoneVolumeOut").textContent = value + "%";
+        audioEngine.setHeadphoneVolume(value / 100);
+      });
+      $("headphoneMix").addEventListener("input", (event) => {
+        const value = Number(event.target.value);
+        $("headphoneMixOut").textContent = value === 0 ? "CUE" : value === 100 ? "MASTER" : value + "%";
+        audioEngine.setHeadphoneMix(value / 100);
+      });
+      $("skinSelect").addEventListener("change", (event) => applySkin(event.target.value));
+      $("layoutSelect").addEventListener("change", (event) => applyLayout(event.target.value));
+      $("focusDeck").addEventListener("change", () => applyLayout("focus"));
+      $("refreshOutputs").addEventListener("click", refreshAudioOutputs);
+      $("audioOutput").addEventListener("change", (event) => setAudioOutput(event.target.value));
+      $("headphoneOutput").addEventListener("change", (event) => setHeadphoneOutput(event.target.value));
+      $("connectMidi").addEventListener("click", connectMidi);
+      $("midiInput").addEventListener("change", (event) => {
+        if (window.midiAccess) bindMidiInput(window.midiAccess.inputs.get(event.target.value));
+      });
+      $("onlineQuery").addEventListener("input", updateOnlineSearchLinks);
+      $("openTutorial").addEventListener("click", () => $("tutorialDialog").showModal());
+      $("closeTutorial").addEventListener("click", () => $("tutorialDialog").close());
+      window.addEventListener("keydown", (event) => {
+        if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+        if (event.target.closest("input, textarea, select, [contenteditable='true']")) return;
+        const key = event.key.toLowerCase();
+        const deckKey = { "1": "a", "2": "b", "3": "c", "4": "d" }[key];
+        const cueKey = { q: "a", w: "b", e: "c", r: "d" }[key];
+        if (deckKey) {
+          setActiveDeck(deckKey);
+          return;
+        }
+        if (key === " ") {
+          event.preventDefault();
+          $("play-" + activeDeck).click();
+        } else if (cueKey) {
+          $("cue-" + cueKey).click();
+        } else if (key === "j") {
+          $("tutorialDialog").showModal();
+        }
+      });
+      const savedSkin = localStorage.getItem("sirKevinSkin");
+      if (["logo", "ocean", "violet", "sunset"].includes(savedSkin)) $("skinSelect").value = savedSkin;
+      applySkin($("skinSelect").value);
+      const savedLayout = localStorage.getItem("sirKevinLayout");
+      if (["three", "duo", "stacked", "focus"].includes(savedLayout)) $("layoutSelect").value = savedLayout;
+      applyLayout($("layoutSelect").value);
+      updateOnlineSearchLinks();
+      refreshAudioOutputs();
+      buildSamplerPads();
+      restoreSamplerSamples();
+      $("samplerPads").addEventListener("click", handleSamplerClick);
+      $("samplerPads").addEventListener("change", async (event) => {
+        const input = event.target;
+        if (input.dataset.action === "file") {
+          await handleSamplerFile(event);
+          return;
+        }
+        const card = input.closest("[data-pad]");
+        if (!card) return;
+        const index = Number(card.dataset.pad);
+        const pad = samplerPads[index];
+        if (input.dataset.action === "loop") {
+          pad.loop = input.checked;
+          if (audioEngine.isSamplerPadPlaying(index)) {
+            audioEngine.stopSamplerPad(index);
+            try {
+              await audioEngine.playSamplerPad(index, pad.buffer, pad.loop, pad.volume, () => updateSamplerPad(index));
+            } catch (error) {
+              samplerMessage(`Sampler pad ${index + 1}: ${error.message}`);
+            }
+            updateSamplerPad(index);
+          }
+          saveSamplerSettings();
+        } else if (input.dataset.action === "volume") {
+          pad.volume = Number(input.value) / 100;
+          saveSamplerSettings();
+        }
+      });
+      $("samplerPads").addEventListener("input", (event) => {
+        const input = event.target;
+        if (input.dataset.action !== "volume") return;
+        const index = Number(input.closest("[data-pad]").dataset.pad);
+        samplerPads[index].volume = Number(input.value) / 100;
+        input.nextElementSibling.textContent = `${input.value}%`;
+        audioEngine.setSamplerPadVolume(index, samplerPads[index].volume);
+      });
+      if (window.speechSynthesis) {
+        window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+        refreshVoices();
+      }
+      window.addEventListener("resize", () => { ["a", "b", "c", "d"].forEach(drawWave); drawOverview(); });
+      function updateMeters() {
+        let deckPlaying = false;
+        ["a", "b", "c", "d"].forEach((key) => {
+          const level = audioEngine.getDeckLevel(key);
+          $("meter-" + key).style.transform = `scaleX(${level})`;
+          $("meter-" + key).parentElement.setAttribute("aria-valuenow", String(Math.round(level * 100)));
+          if (!decks[key].audio.paused) {
+            deckPlaying = true;
+            drawWave(key);
+          }
+        });
+        if (deckPlaying) drawOverview();
+        const masterLevel = audioEngine.getMasterLevel();
+        $("masterMeter").style.transform = `scaleX(${masterLevel})`;
+        $("masterMeter").parentElement.setAttribute("aria-valuenow", String(Math.round(masterLevel * 100)));
+        window.requestAnimationFrame(updateMeters);
+      }
+      renderTracks();
+      ["a", "b", "c", "d"].forEach(drawWave);
+      drawOverview();
+      window.requestAnimationFrame(updateMeters);
+    })();
+  </script>
+</body>
+</html>

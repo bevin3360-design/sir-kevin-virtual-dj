@@ -1,0 +1,64 @@
+{
+  "name": "@sir-kevin/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/electron/main.cjs",
+  "scripts": {
+    "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on tcp:5173 && cross-env SKVDJ_RENDERER_URL=http://127.0.0.1:5173 electron dist/electron/main.cjs\"",
+    "typecheck": "tsc --noEmit",
+    "build:renderer": "vite build",
+    "build:electron": "node scripts/build-electron.mjs",
+    "build": "npm run typecheck && npm run build:renderer && npm run build:electron",
+    "dist": "npm run build && node scripts/package.mjs",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^41.0.0",
+    "electron-builder": "^26.0.12",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.3",
+    "tsx": "^4.19.3",
+    "vite": "^6.3.5",
+    "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "com.sirkevin.virtualdj.native",
+    "productName": "SIR. KEVIN VIRTUAL DJ (Native Engine Preview)",
+    "directories": {
+      "output": "../../dist/native-app"
+    },
+    "files": [
+      "dist/renderer/**/*",
+      "dist/electron/**/*.cjs",
+      "package.json"
+    ],
+    "extraResources": [],
+    "win": {
+      "target": ["nsis"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SIR. KEVIN VIRTUAL DJ (Native Engine Preview)"
+    }
+  },
+  "allowScripts": {
+    "electron@41.10.7": true,
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true
+  }
+}

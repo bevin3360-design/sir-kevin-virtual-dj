@@ -1,0 +1,6 @@
+node_modules/
+dist/
+release/
+*.log
+engine/build/
+apps/desktop/dist/

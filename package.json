@@ -1,0 +1,60 @@
+{
+  "name": "sir-kevin-virtual-dj",
+  "version": "1.1.0",
+  "description": "SIR. KEVIN VIRTUAL DJ desktop prototype",
+  "author": "SIR. KEVIN VIRTUAL DJ",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64",
+    "native:dev": "npm --prefix apps/desktop run dev",
+    "native:typecheck": "npm --prefix apps/desktop run typecheck",
+    "native:test": "npm --prefix apps/desktop run test",
+    "native:build": "npm --prefix apps/desktop run build"
+  },
+  "devDependencies": {
+    "electron": "^41.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.sirkevin.virtualdj",
+    "productName": "SIR. KEVIN VIRTUAL DJ",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "index.html",
+      "audio-engine.js",
+      "sir-kevin-logo.jpg",
+      "sir-kevin-icon.ico",
+      "package.json"
+    ],
+    "win": {
+      "icon": "sir-kevin-icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SIR. KEVIN VIRTUAL DJ"
+    }
+  },
+  "allowScripts": {
+    "electron@41.10.7": true,
+    "electron-winstaller@5.4.0": true
+  }
+}
